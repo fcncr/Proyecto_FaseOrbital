@@ -22,4 +22,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="modelos\TipoEnemigos.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemigo.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

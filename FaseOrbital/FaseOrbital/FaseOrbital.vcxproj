@@ -141,6 +141,10 @@
   <ItemGroup>
     <ClCompile Include="FaseOrbital.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Enemigo.h" />
+    <ClInclude Include="modelos\TipoEnemigos.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

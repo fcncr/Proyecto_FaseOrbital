@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="FaseOrbital/FaseOrbital.vcxproj" />
+  <Project Path="FaseOrbital/FaseOrbital.vcxproj" Id="6965f152-41fd-4832-b3e4-ba26a22d7c27" />
 </Solution>
