@@ -13,21 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="modelos">
-      <UniqueIdentifier>{d3efd586-b79e-4ec9-81af-2c989548701f}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FaseOrbital.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="modelos\TipoEnemigos.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemigo.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
