@@ -139,9 +139,21 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ColaSpawn.cpp" />
     <ClCompile Include="FaseOrbital.cpp" />
+    <ClCompile Include="Generador.cpp" />
+    <ClCompile Include="Oleada.cpp" />
+    <ClCompile Include="Pruebas.cpp" />
+    <ClCompile Include="RondaJugadores.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ColaSpawn.h" />
+    <ClInclude Include="Generador.h" />
+    <ClInclude Include="Jugador.h" />
+    <ClInclude Include="Oleada.h" />
+    <ClInclude Include="Pruebas.h" />
+    <ClInclude Include="RondaJugadores.h" />
+    <ClInclude Include="Spawn.h" />
     <ClInclude Include="TipoEnemigo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

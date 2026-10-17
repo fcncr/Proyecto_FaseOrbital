@@ -16,15 +16,60 @@
     <Filter Include="modelos">
       <UniqueIdentifier>{20fa7a85-e435-4f3b-ad1a-9815adc44e87}</UniqueIdentifier>
     </Filter>
+    <Filter Include="juego">
+      <UniqueIdentifier>{72df3259-0b73-4028-b126-343df069a669}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="estructuras">
+      <UniqueIdentifier>{e48b3da3-473d-4bf4-8101-d631526082f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pruebas">
+      <UniqueIdentifier>{1c7b26e9-bc39-449b-ab3c-456bc1bfc56f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FaseOrbital.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ColaSpawn.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="RondaJugadores.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="Generador.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="Oleada.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="Pruebas.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
       <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="Spawn.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="ColaSpawn.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="Jugador.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="RondaJugadores.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="Generador.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="Oleada.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="Pruebas.h">
+      <Filter>pruebas</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
