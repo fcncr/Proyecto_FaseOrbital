@@ -45,6 +45,18 @@
     <ClCompile Include="Pruebas.cpp">
       <Filter>pruebas</Filter>
     </ClCompile>
+    <ClCompile Include="ListaEnemigos.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasListaEnemigos.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
+    <ClCompile Include="ListaBalas.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasListaBalas.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
@@ -69,6 +81,24 @@
       <Filter>juego</Filter>
     </ClInclude>
     <ClInclude Include="Pruebas.h">
+      <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemigo.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="Bala.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="ListaEnemigos.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasListaEnemigos.h">
+      <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="ListaBalas.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasListaBalas.h">
       <Filter>pruebas</Filter>
     </ClInclude>
   </ItemGroup>

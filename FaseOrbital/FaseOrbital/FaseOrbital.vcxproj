@@ -142,16 +142,26 @@
     <ClCompile Include="ColaSpawn.cpp" />
     <ClCompile Include="FaseOrbital.cpp" />
     <ClCompile Include="Generador.cpp" />
+    <ClCompile Include="ListaBalas.cpp" />
+    <ClCompile Include="ListaEnemigos.cpp" />
     <ClCompile Include="Oleada.cpp" />
     <ClCompile Include="Pruebas.cpp" />
+    <ClCompile Include="PruebasListaBalas.cpp" />
+    <ClCompile Include="PruebasListaEnemigos.cpp" />
     <ClCompile Include="RondaJugadores.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bala.h" />
     <ClInclude Include="ColaSpawn.h" />
+    <ClInclude Include="Enemigo.h" />
     <ClInclude Include="Generador.h" />
     <ClInclude Include="Jugador.h" />
+    <ClInclude Include="ListaBalas.h" />
+    <ClInclude Include="ListaEnemigos.h" />
     <ClInclude Include="Oleada.h" />
     <ClInclude Include="Pruebas.h" />
+    <ClInclude Include="PruebasListaBalas.h" />
+    <ClInclude Include="PruebasListaEnemigos.h" />
     <ClInclude Include="RondaJugadores.h" />
     <ClInclude Include="Spawn.h" />
     <ClInclude Include="TipoEnemigo.h" />
