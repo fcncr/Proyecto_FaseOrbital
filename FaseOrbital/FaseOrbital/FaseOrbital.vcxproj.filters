@@ -69,6 +69,21 @@
     <ClCompile Include="ModoLotes.cpp">
       <Filter>juego</Filter>
     </ClCompile>
+    <ClCompile Include="PruebasOleada.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
+    <ClCompile Include="Partida.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="Bot.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasBot.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
+    <ClCompile Include="Prueba08.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
@@ -133,6 +148,21 @@
     </ClInclude>
     <ClInclude Include="ModoLotes.h">
       <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasOleada.h">
+      <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="Partida.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="Bot.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasBot.h">
+      <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="Prueba08.h">
+      <Filter>pruebas</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -15,5 +15,6 @@ struct ResultadoModoLotes {
 };
 
 bool ejecutarModoLotes(Jugador& jugador, int numeroOleada, const ColaSpawn& spawns, const ScriptAcciones& script, int limiteTicks, ResultadoModoLotes& resultado);
+AccionMotor obtenerAccionModoLotes(const Motor& motor, const ScriptAcciones& script);
 
 #endif

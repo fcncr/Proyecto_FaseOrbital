@@ -1,12 +1,30 @@
 #include "ModoLotes.h"
+#include "Bot.h"
+
+AccionMotor obtenerAccionModoLotes(const Motor& motor, const ScriptAcciones& script) {
+    if (motor.jugador == nullptr) {
+        AccionMotor accion;
+        accion.cambiarAngulo = false;
+        accion.anguloObjetivo = motor.nave.anguloObjetivo;
+        accion.cambiarColor = false;
+        accion.colorNuevo = motor.nave.color;
+        accion.solicitarPulso = false;
+        return accion;
+    }
+
+    if (motor.jugador->esBot) {
+        return obtenerAccionBot(motor);
+    }
+
+    return obtenerAccionScript(script, motor.jugador->alias, motor.numeroOleada, motor.tickActual);
+}
 
 bool ejecutarModoLotes(Jugador& jugador, int numeroOleada, const ColaSpawn& spawns, const ScriptAcciones& script, int limiteTicks, ResultadoModoLotes& resultado) {
     Motor motor;
     inicializarMotor(motor, &jugador, numeroOleada, spawns);
 
     while (!motor.turnoTerminado && motor.tickActual < limiteTicks) {
-        AccionMotor accion = obtenerAccionScript(script, jugador.alias, numeroOleada, motor.tickActual);
-
+        AccionMotor accion = obtenerAccionModoLotes(motor, script);
         procesarTick(motor, accion);
     }
 

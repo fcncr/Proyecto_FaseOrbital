@@ -10,6 +10,8 @@ struct Jugador {
     int puntaje;
     int combo;
     int cargaPulso;
+    int oleadaAlcanzada;
+    bool eliminado;
 };
 
 #endif
