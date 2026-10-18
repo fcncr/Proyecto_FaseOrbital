@@ -57,6 +57,18 @@
     <ClCompile Include="PruebasListaBalas.cpp">
       <Filter>pruebas</Filter>
     </ClCompile>
+    <ClCompile Include="Motor.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasMotor.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
+    <ClCompile Include="ScriptAcciones.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="ModoLotes.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
@@ -100,6 +112,27 @@
     </ClInclude>
     <ClInclude Include="PruebasListaBalas.h">
       <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="Nave.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="Pulso.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="AccionMotor.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="Motor.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasMotor.h">
+      <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="ScriptAcciones.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="ModoLotes.h">
+      <Filter>juego</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

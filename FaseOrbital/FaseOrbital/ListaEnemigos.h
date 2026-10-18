@@ -25,7 +25,4 @@ int tamanoListaEnemigos(const ListaEnemigos& lista);
 bool listaEnemigosVacia(const ListaEnemigos& lista);
 void destruirListaEnemigos(ListaEnemigos& lista);
 
-NodoEnemigo* insertarDespues(ListaEnemigos& lista, NodoEnemigo* nodo, const Enemigo& enemigo);
-NodoEnemigo* eliminarEnemigo(ListaEnemigos& lista, NodoEnemigo* nodo);
-
 #endif

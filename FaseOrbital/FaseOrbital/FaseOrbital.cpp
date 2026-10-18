@@ -2,6 +2,7 @@
 #include "PruebasListaEnemigos.h"
 #include "PruebasListaBalas.h"
 #include "Pruebas.h"
+#include "PruebasMotor.h"
 
 using namespace std;
 
@@ -17,6 +18,7 @@ int main() {
     cout << (pruebaP06() ? "P06 PASS" : "P06 FAIL") << endl;
     cout << (pruebaP07() ? "P07 PASS" : "P07 FAIL") << endl;
     cout << (pruebaGeneradorDeterminista() ? "GENERADOR PASS" : "GENERADOR FAIL") << endl;
+    cout << (pruebaMotorBase() ? "MOTOR BASE PASS" : "MOTOR BASE FAIL") << endl;
 
     return 0;
 }
