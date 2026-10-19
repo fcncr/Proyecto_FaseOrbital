@@ -57,3 +57,5 @@ x86/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+
+FaseOrbital/packages/

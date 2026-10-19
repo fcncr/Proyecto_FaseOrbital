@@ -114,6 +114,21 @@
     <ClCompile Include="Prueba14.cpp">
       <Filter>pruebas</Filter>
     </ClCompile>
+    <ClCompile Include="ArgumentosCLI.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="EjecutorPruebas.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
+    <ClCompile Include="Aplicacion.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="VistaAllegro.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="ControladorAllegro.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
@@ -233,5 +248,23 @@
     <ClInclude Include="Prueba14.h">
       <Filter>pruebas</Filter>
     </ClInclude>
+    <ClInclude Include="ArgumentosCLI.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="Aplicacion.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="EjecutorPruebas.h">
+      <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="VistaAllegro.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="ControladorAllegro.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

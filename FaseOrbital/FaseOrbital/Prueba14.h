@@ -3,5 +3,6 @@
 
 bool prepararEscenarioP14();
 bool pruebaCiclosMemoriaP14();
+bool pruebaEstresDiezOleadasP14();
 
 #endif

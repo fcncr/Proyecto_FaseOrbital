@@ -128,19 +128,9 @@
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\clocale",
             "c:\\program files (x86)\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\locale.h",
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\ostream",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebaslistaenemigos.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebaslistabalas.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebas.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebasmotor.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebasoleada.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebasbot.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\prueba08.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\scriptacciones.h",
+            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\argumentoscli.h",
             "c:\\program files\\microsoft visual studio\\18\\community\\vc\\tools\\msvc\\14.51.36231\\include\\string",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\accionmotor.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebasestadisticas.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\pruebaspersistencia.h",
-            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\prueba14.h"
+            "c:\\users\\fabic\\documents\\github\\proyecto_faseorbital\\proyecto_faseorbital\\faseorbital\\faseorbital\\aplicacion.h"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

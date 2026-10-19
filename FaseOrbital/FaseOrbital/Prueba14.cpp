@@ -143,3 +143,70 @@ bool pruebaCiclosMemoriaP14() {
 
     return true;
 }
+
+bool pruebaEstresDiezOleadasP14() {
+    ScriptAcciones script;
+    inicializarScriptAcciones(script);
+
+    bool resultado = true;
+
+    const unsigned int semilla = 42u;
+    const int limiteTicks = 10000;
+
+    for (int numeroOleada = 1; numeroOleada <= 10 && resultado; numeroOleada++) {
+        Partida partida;
+
+        inicializarPartida(partida, semilla, 10);
+
+        if (!agregarBotsP14(partida)) {
+            resultado = false;
+        }
+
+        partida.numeroRonda = numeroOleada;
+
+        if (resultado) {
+            generarColaOriginalRonda(partida);
+        }
+
+        if (resultado && partida.colaOriginalRonda.tam <= 0) {
+            resultado = false;
+        }
+
+        for (int i = 0; i < 4 && resultado; i++) {
+            ColaSpawn colaJugador;
+            inicializarColaSpawn(colaJugador);
+
+            prepararColaJugador(partida, colaJugador);
+
+            ResultadoModoLotes resultadoTurno;
+
+            if (!ejecutarModoLotes(
+                partida.jugadores[i],
+                numeroOleada,
+                colaJugador,
+                script,
+                limiteTicks,
+                resultadoTurno,
+                &partida.bitacora
+            )) {
+                resultado = false;
+            }
+
+            destruirColaSpawn(colaJugador);
+        }
+
+        destruirPartida(partida);
+
+        if (!partidaDestruidaCorrectamenteP14(partida)) {
+            resultado = false;
+        }
+    }
+
+    destruirScriptAcciones(script);
+
+    if (!scriptDestruidoCorrectamenteP14(script)) {
+        resultado = false;
+    }
+
+    return resultado;
+}
