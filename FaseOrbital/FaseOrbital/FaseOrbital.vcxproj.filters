@@ -108,6 +108,12 @@
     <ClCompile Include="PruebasPersistencia.cpp">
       <Filter>juego</Filter>
     </ClCompile>
+    <ClCompile Include="ReportePartida.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="Prueba14.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
@@ -220,6 +226,12 @@
     </ClInclude>
     <ClInclude Include="PruebasPersistencia.h">
       <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="ReportePartida.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="Prueba14.h">
+      <Filter>pruebas</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -30,7 +30,8 @@ struct Motor {
     bool turnoTerminado;
 };
 
-void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const ColaSpawn& spawns, BitacoraEventos* bitacora = nullptr);void destruirMotor(Motor& motor);
+void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const ColaSpawn& spawns, BitacoraEventos* bitacora = nullptr);
+void destruirMotor(Motor& motor);
 double normalizarAngulo(double angulo);
 int calcularMultiplicador(int combo);
 int puntosBaseEnemigo(TipoEnemigo tipo);

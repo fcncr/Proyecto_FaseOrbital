@@ -5,6 +5,15 @@
 #include <cstdio>
 #include "ModoLotes.h"
 
+static bool casiIgualesOrden(double a, double b) {
+    double diferencia = a - b;
+
+    if (diferencia < 0.0) diferencia = -diferencia;
+
+    return diferencia < 0.001;
+}
+
+
 bool pruebaInicializacionMotor() {
     ColaSpawn cola;
     inicializarColaSpawn(cola);
@@ -796,6 +805,297 @@ bool pruebaModoLotesDeterminista() {
 
     return resultado;
 }
+bool pruebaOrdenExactoTick() {
+    bool resultado = true;
+
+    // CASO 1:
+    // La accion y el movimiento de la nave deben ocurrir antes del disparo.
+    {
+        ColaSpawn cola;
+        inicializarColaSpawn(cola);
+
+        Spawn futuro{ 100, Dron, 0, 0, 0 };
+        encolarSpawn(cola, futuro);
+
+        Jugador jugador{ "Prueba", false, 100, 0, 0, 0 };
+
+        Motor motor;
+        inicializarMotor(motor, &jugador, 1, cola);
+
+        motor.nave.anguloActual = 84.0;
+        motor.nave.anguloObjetivo = 84.0;
+        motor.nave.color = 0;
+
+        AccionMotor accion{ true, 90.0, true, 1, false };
+
+        procesarTick(motor, accion);
+
+        if (motor.nave.anguloActual != 90.0) resultado = false;
+        if (motor.nave.color != 1) resultado = false;
+
+        if (motor.balas.tam != 1) resultado = false;
+
+        NodoBala* bala = motor.balas.cabeza;
+
+        if (bala == nullptr) {
+            resultado = false;
+        }
+        else {
+            if (bala->dato.color != 1) resultado = false;
+
+            if (!casiIgualesOrden(bala->dato.x, 0.0)) resultado = false;
+            if (!casiIgualesOrden(bala->dato.y, 109.0)) resultado = false;
+
+            if (!casiIgualesOrden(bala->dato.vx, 0.0)) resultado = false;
+            if (!casiIgualesOrden(bala->dato.vy, 9.0)) resultado = false;
+        }
+
+        destruirMotor(motor);
+        destruirColaSpawn(cola);
+    }
+
+    // CASO 2:
+    // Todos los spawns vencidos deben aparecer en el mismo tick
+    // y moverse durante ese mismo tick.
+    {
+        ColaSpawn cola;
+        inicializarColaSpawn(cola);
+
+        Spawn spawn1{ 0, Dron, 0, 0, 0 };
+        Spawn spawn2{ 0, Tanque, 1, 180, 0 };
+        Spawn futuro{ 5, Dron, 2, 90, 0 };
+
+        encolarSpawn(cola, spawn1);
+        encolarSpawn(cola, spawn2);
+        encolarSpawn(cola, futuro);
+
+        Jugador jugador{ "Prueba", false, 100, 0, 0, 0 };
+
+        Motor motor;
+        inicializarMotor(motor, &jugador, 1, cola);
+
+        AccionMotor accion{ false, 0.0, false, 0, false };
+
+        procesarTick(motor, accion);
+
+        if (motor.enemigos.tam != 2) resultado = false;
+        if (motor.spawns.tam != 1) resultado = false;
+
+        NodoEnemigo* dron = motor.enemigos.cabeza;
+        NodoEnemigo* tanque = dron != nullptr ? dron->sig : nullptr;
+
+        if (dron == nullptr || dron->dato.tipo != Dron) {
+            resultado = false;
+        }
+        else {
+            if (!casiIgualesOrden(dron->dato.r, 299.12)) resultado = false;
+        }
+
+        if (tanque == nullptr || tanque->dato.tipo != Tanque) {
+            resultado = false;
+        }
+        else {
+            if (!casiIgualesOrden(tanque->dato.r, 299.56)) resultado = false;
+        }
+
+        destruirMotor(motor);
+        destruirColaSpawn(cola);
+    }
+
+    // CASO 3:
+    // Los enemigos deben moverse antes de que se muevan las balas.
+    {
+        ColaSpawn cola;
+        inicializarColaSpawn(cola);
+
+        Spawn futuro{ 100, Dron, 0, 90, 0 };
+        encolarSpawn(cola, futuro);
+
+        Jugador jugador{ "Prueba", false, 100, 0, 0, 0 };
+
+        Motor motor;
+        inicializarMotor(motor, &jugador, 1, cola);
+
+        motor.tickActual = 1;
+
+        Enemigo enemigo{ 1, Dron, 0, 206.5, 0.0, 0.0, 1, 6, 0 };
+        insertarFinal(motor.enemigos, enemigo);
+
+        Bala bala{ 191.0, 0.0, 9.0, 0.0, 0, 0 };
+        insertarInicio(motor.balas, bala);
+
+        AccionMotor accion{ false, 0.0, false, 0, false };
+
+        procesarTick(motor, accion);
+
+        if (motor.enemigos.tam != 0) resultado = false;
+        if (motor.balas.tam != 0) resultado = false;
+
+        if (jugador.puntaje != 100) resultado = false;
+        if (jugador.combo != 1) resultado = false;
+        if (jugador.cargaPulso != 5) resultado = false;
+
+        destruirMotor(motor);
+        destruirColaSpawn(cola);
+    }
+
+    // CASO 4:
+    // Los choques con el nucleo deben resolverse antes de las balas.
+    {
+        ColaSpawn cola;
+        inicializarColaSpawn(cola);
+
+        Spawn futuro{ 100, Dron, 0, 90, 0 };
+        encolarSpawn(cola, futuro);
+
+        Jugador jugador{ "Prueba", false, 100, 0, 0, 0 };
+
+        Motor motor;
+        inicializarMotor(motor, &jugador, 1, cola);
+
+        motor.tickActual = 1;
+
+        Enemigo enemigo{ 1, Dron, 0, 23.0, 0.0, 0.0, 1, 6, 0 };
+        insertarFinal(motor.enemigos, enemigo);
+
+        Bala bala{ 13.12, 0.0, 9.0, 0.0, 0, 0 };
+        insertarInicio(motor.balas, bala);
+
+        AccionMotor accion{ false, 0.0, false, 0, false };
+
+        procesarTick(motor, accion);
+
+        if (jugador.vidaNucleo != 90) resultado = false;
+        if (jugador.puntaje != 0) resultado = false;
+        if (jugador.combo != 0) resultado = false;
+
+        if (motor.enemigos.tam != 0) resultado = false;
+
+        if (motor.balas.tam != 1) resultado = false;
+        if (motor.balas.cabeza == nullptr) resultado = false;
+
+        destruirMotor(motor);
+        destruirColaSpawn(cola);
+    }
+
+    // CASO 5:
+    // Las balas deben resolverse antes del pulso.
+    {
+        ColaSpawn cola;
+        inicializarColaSpawn(cola);
+
+        Spawn futuro{ 100, Dron, 0, 90, 0 };
+        encolarSpawn(cola, futuro);
+
+        Jugador jugador{ "Prueba", false, 100, 0, 0, 0 };
+
+        Motor motor;
+        inicializarMotor(motor, &jugador, 1, cola);
+
+        motor.tickActual = 1;
+
+        motor.pulso.activo = true;
+        motor.pulso.radioActual = 188.0;
+
+        Enemigo enemigo{ 1, Dron, 0, 200.88, 0.0, 0.0, 1, 6, 0 };
+        insertarFinal(motor.enemigos, enemigo);
+
+        Bala bala{ 191.0, 0.0, 9.0, 0.0, 0, 0 };
+        insertarInicio(motor.balas, bala);
+
+        AccionMotor accion{ false, 0.0, false, 0, false };
+
+        procesarTick(motor, accion);
+
+        if (motor.enemigos.tam != 0) resultado = false;
+        if (motor.balas.tam != 0) resultado = false;
+
+        if (jugador.puntaje != 100) resultado = false;
+        if (jugador.combo != 1) resultado = false;
+        if (jugador.cargaPulso != 5) resultado = false;
+
+        if (!motor.pulso.activo) resultado = false;
+        if (!casiIgualesOrden(motor.pulso.radioActual, 200.0)) resultado = false;
+
+        destruirMotor(motor);
+        destruirColaSpawn(cola);
+    }
+
+    // CASO 6:
+    // La bitacora y las metricas no deben cambiar el resultado del gameplay.
+    {
+        ColaSpawn cola;
+        inicializarColaSpawn(cola);
+
+        Spawn futuro{ 100, Dron, 0, 90, 0 };
+        encolarSpawn(cola, futuro);
+
+        Jugador jugadorA{ "Prueba", false, 100, 0, 0, 0 };
+        Jugador jugadorB{ "Prueba", false, 100, 0, 0, 0 };
+
+        BitacoraEventos bitacora;
+        inicializarBitacora(bitacora);
+
+        Motor motorA;
+        Motor motorB;
+
+        inicializarMotor(motorA, &jugadorA, 1, cola, &bitacora);
+        inicializarMotor(motorB, &jugadorB, 1, cola);
+
+        motorA.tickActual = 1;
+        motorB.tickActual = 1;
+
+        Enemigo enemigoA{ 1, Dron, 0, 206.5, 0.0, 0.0, 1, 6, 0 };
+        Enemigo enemigoB{ 1, Dron, 0, 206.5, 0.0, 0.0, 1, 6, 0 };
+
+        insertarFinal(motorA.enemigos, enemigoA);
+        insertarFinal(motorB.enemigos, enemigoB);
+
+        Bala balaA{ 191.0, 0.0, 9.0, 0.0, 1, 0 };
+        Bala balaB{ 191.0, 0.0, 9.0, 0.0, 1, 0 };
+
+        insertarInicio(motorA.balas, balaA);
+        insertarInicio(motorB.balas, balaB);
+
+        AccionMotor accion{ false, 0.0, false, 0, false };
+
+        procesarTick(motorA, accion);
+        procesarTick(motorB, accion);
+
+        if (jugadorA.vidaNucleo != jugadorB.vidaNucleo) resultado = false;
+        if (jugadorA.puntaje != jugadorB.puntaje) resultado = false;
+        if (jugadorA.combo != jugadorB.combo) resultado = false;
+        if (jugadorA.cargaPulso != jugadorB.cargaPulso) resultado = false;
+
+        if (motorA.tickActual != motorB.tickActual) resultado = false;
+        if (motorA.enemigos.tam != motorB.enemigos.tam) resultado = false;
+        if (motorA.balas.tam != motorB.balas.tam) resultado = false;
+
+        if (motorA.enemigos.cabeza == nullptr || motorB.enemigos.cabeza == nullptr) {
+            resultado = false;
+        }
+        else {
+            if (!casiIgualesOrden(motorA.enemigos.cabeza->dato.r, motorB.enemigos.cabeza->dato.r)) resultado = false;
+            if (!casiIgualesOrden(motorA.enemigos.cabeza->dato.r, 214.62)) resultado = false;
+        }
+
+        if (jugadorA.metricas.impactosErroneos != 1) resultado = false;
+        if (jugadorB.metricas.impactosErroneos != 1) resultado = false;
+
+        if (jugadorA.metricas.ticksSobrevividos != 1) resultado = false;
+        if (jugadorB.metricas.ticksSobrevividos != 1) resultado = false;
+
+        if (bitacora.tam != 1) resultado = false;
+
+        destruirMotor(motorA);
+        destruirMotor(motorB);
+
+        destruirBitacora(bitacora);
+        destruirColaSpawn(cola);
+    }
+
+    return resultado;
+}
 
 bool pruebaMotorBase() {
     if (!pruebaInicializacionMotor()) return false;
@@ -812,6 +1112,7 @@ bool pruebaMotorBase() {
     if (!pruebaP11()) return false;
     if (!pruebaFinMotor()) return false;
     if (!pruebaProcesarTick()) return false;
+    if (!pruebaOrdenExactoTick()) return false;
     if (!pruebaScriptAcciones()) return false;
     if (!pruebaModoLotesDeterminista()) return false;
 

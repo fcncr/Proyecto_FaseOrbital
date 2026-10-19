@@ -44,6 +44,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v145</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -155,6 +156,7 @@
     <ClCompile Include="Partida.cpp" />
     <ClCompile Include="Persistencia.cpp" />
     <ClCompile Include="Prueba08.cpp" />
+    <ClCompile Include="Prueba14.cpp" />
     <ClCompile Include="Pruebas.cpp" />
     <ClCompile Include="PruebasBot.cpp" />
     <ClCompile Include="PruebasEstadisticas.cpp" />
@@ -164,6 +166,7 @@
     <ClCompile Include="PruebasOleada.cpp" />
     <ClCompile Include="PruebasPersistencia.cpp" />
     <ClCompile Include="Ranking.cpp" />
+    <ClCompile Include="ReportePartida.cpp" />
     <ClCompile Include="RondaJugadores.cpp" />
     <ClCompile Include="ScriptAcciones.cpp" />
   </ItemGroup>
@@ -190,6 +193,7 @@
     <ClInclude Include="Partida.h" />
     <ClInclude Include="Persistencia.h" />
     <ClInclude Include="Prueba08.h" />
+    <ClInclude Include="Prueba14.h" />
     <ClInclude Include="Pruebas.h" />
     <ClInclude Include="PruebasBot.h" />
     <ClInclude Include="PruebasEstadisticas.h" />
@@ -201,6 +205,7 @@
     <ClInclude Include="Pulso.h" />
     <ClInclude Include="Ranking.h" />
     <ClInclude Include="RegistroPartida.h" />
+    <ClInclude Include="ReportePartida.h" />
     <ClInclude Include="RondaJugadores.h" />
     <ClInclude Include="ScriptAcciones.h" />
     <ClInclude Include="Spawn.h" />
