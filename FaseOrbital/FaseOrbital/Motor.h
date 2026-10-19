@@ -8,6 +8,7 @@
 #include "ListaEnemigos.h"
 #include "ListaBalas.h"
 #include "ColaSpawn.h"
+#include "BitacoraEventos.h"
 
 struct Motor {
     int tickActual;
@@ -17,6 +18,7 @@ struct Motor {
     Pulso pulso;
 
     Jugador* jugador;
+    BitacoraEventos* bitacora;
 
     ListaEnemigos enemigos;
     ListaBalas balas;
@@ -28,9 +30,7 @@ struct Motor {
     bool turnoTerminado;
 };
 
-void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const ColaSpawn& spawns);
-void destruirMotor(Motor& motor);
-
+void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const ColaSpawn& spawns, BitacoraEventos* bitacora = nullptr);void destruirMotor(Motor& motor);
 double normalizarAngulo(double angulo);
 int calcularMultiplicador(int combo);
 int puntosBaseEnemigo(TipoEnemigo tipo);

@@ -1,4 +1,3 @@
-#pragma once
 #ifndef PARTIDA_H
 #define PARTIDA_H
 
@@ -8,6 +7,8 @@
 #include "RondaJugadores.h"
 #include "ColaSpawn.h"
 #include "ModoLotes.h"
+#include "BitacoraEventos.h"
+#include "HistorialPartidas.h"
 
 struct Partida {
     Jugador jugadores[6];
@@ -18,6 +19,7 @@ struct Partida {
     int limiteOleadas;
     bool finalizada;
     ColaSpawn colaOriginalRonda;
+    BitacoraEventos bitacora;
 };
 
 void inicializarPartida(Partida& partida, uint32_t semillaPartida, int limiteOleadas);
@@ -41,5 +43,9 @@ const Jugador* determinarGanadorPartida(const Partida& partida, const double* pr
 
 bool ejecutarTurnoActualModoLotes(Partida& partida, const ScriptAcciones& script, int limiteTicks, ResultadoModoLotes& resultado);
 bool ejecutarRondaModoLotes(Partida& partida, const ScriptAcciones& script, int limiteTicks);
+
+void actualizarMetricasFinalesPartida(Partida& partida);
+bool crearRegistroJugadorPartida(const Partida& partida, int indice, int idPartida, const std::string& modo, RegistroPartida& registro);
+void agregarResultadosPartidaHistorial(Partida& partida, int idPartida, const std::string& modo, HistorialPartidas& historial);
 
 #endif

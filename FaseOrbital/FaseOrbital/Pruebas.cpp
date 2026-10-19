@@ -5,6 +5,7 @@
 #include "../FaseOrbital/Partida.h"
 #include "ModoLotes.h"
 #include "Bot.h"
+#include "BitacoraEventos.h"
 
 bool pruebaP05() {
     ColaSpawn cola;
@@ -644,7 +645,6 @@ B gana
 static bool accionesMotorIguales(const AccionMotor& a, const AccionMotor& b) {
     return a.cambiarAngulo == b.cambiarAngulo && a.anguloObjetivo == b.anguloObjetivo && a.cambiarColor == b.cambiarColor && a.colorNuevo == b.colorNuevo && a.solicitarPulso == b.solicitarPulso;
 }
-
 bool pruebaIntegracionModoLotes() {
     ScriptAcciones script;
     inicializarScriptAcciones(script);
@@ -701,6 +701,111 @@ bool pruebaIntegracionModoLotes() {
 
     destruirListaEnemigos(motorBot.enemigos);
     destruirScriptAcciones(script);
+
+    return resultado;
+}
+
+/*----------------------------------------------------------------------------*/
+
+static Evento crearEventoPrueba(int tick, int oleada, const std::string& jugador, TipoEvento tipoEvento, int tipoEnemigo, int color, int valor) {
+    Evento evento;
+    evento.tick = tick;
+    evento.oleada = oleada;
+    evento.jugador = jugador;
+    evento.tipoEvento = tipoEvento;
+    evento.tipoEnemigo = tipoEnemigo;
+    evento.color = color;
+    evento.valor = valor;
+    return evento;
+}
+bool pruebaBitacoraEventos() {
+    BitacoraEventos bitacora;
+    inicializarBitacora(bitacora);
+
+    bool resultado = true;
+
+    if (bitacora.cabeza != nullptr || bitacora.cola != nullptr || bitacora.tam != 0) {
+        resultado = false;
+    }
+
+    Evento evento1 = crearEventoPrueba(10, 1, "A", BAJA, 0, 1, 100);
+    Evento evento2 = crearEventoPrueba(20, 1, "B", PULSO, -1, -1, 0);
+    Evento evento3 = crearEventoPrueba(30, 2, "A", DANO_NUCLEO, 4, 2, 22);
+    Evento evento4 = crearEventoPrueba(40, 2, "A", FIN_OLEADA, -1, -1, 0);
+
+    agregarEventoFinal(bitacora, evento1);
+
+    if (bitacora.cabeza == nullptr || bitacora.cola == nullptr || bitacora.cabeza != bitacora.cola || bitacora.tam != 1) {
+        resultado = false;
+    }
+
+    agregarEventoFinal(bitacora, evento2);
+    agregarEventoFinal(bitacora, evento3);
+    agregarEventoFinal(bitacora, evento4);
+
+    if (bitacora.tam != 4) {
+        resultado = false;
+    }
+
+    if (bitacora.cabeza == nullptr || bitacora.cabeza->dato.tick != 10) {
+        resultado = false;
+    }
+
+    if (bitacora.cabeza != nullptr && bitacora.cabeza->sig != nullptr && bitacora.cabeza->sig->dato.tick != 20) {
+        resultado = false;
+    }
+
+    if (bitacora.cola == nullptr || bitacora.cola->dato.tick != 40 || bitacora.cola->sig != nullptr) {
+        resultado = false;
+    }
+
+    BitacoraEventos porJugador;
+    inicializarBitacora(porJugador);
+    filtrarPorJugador(bitacora, "A", porJugador);
+
+    if (porJugador.tam != 3) {
+        resultado = false;
+    }
+
+    const NodoEvento* actual = porJugador.cabeza;
+
+    while (actual != nullptr) {
+        if (actual->dato.jugador != "A") {
+            resultado = false;
+        }
+
+        actual = actual->sig;
+    }
+
+    BitacoraEventos porOleada;
+    inicializarBitacora(porOleada);
+    filtrarPorOleada(bitacora, 2, porOleada);
+
+    if (porOleada.tam != 2) {
+        resultado = false;
+    }
+
+    actual = porOleada.cabeza;
+
+    while (actual != nullptr) {
+        if (actual->dato.oleada != 2) {
+            resultado = false;
+        }
+
+        actual = actual->sig;
+    }
+
+    if (porJugador.cabeza == bitacora.cabeza || porOleada.cabeza == bitacora.cabeza) {
+        resultado = false;
+    }
+
+    destruirBitacora(porJugador);
+    destruirBitacora(porOleada);
+    destruirBitacora(bitacora);
+
+    if (bitacora.cabeza != nullptr || bitacora.cola != nullptr || bitacora.tam != 0) {
+        resultado = false;
+    }
 
     return resultado;
 }

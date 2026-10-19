@@ -2,6 +2,7 @@
 #define JUGADOR_H
 
 #include <string>
+#include "MetricasJugador.h"
 
 struct Jugador {
     std::string alias;
@@ -12,6 +13,7 @@ struct Jugador {
     int cargaPulso;
     int oleadaAlcanzada;
     bool eliminado;
+    MetricasJugador metricas;
 };
 
 #endif

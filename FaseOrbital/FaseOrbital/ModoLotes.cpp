@@ -19,9 +19,9 @@ AccionMotor obtenerAccionModoLotes(const Motor& motor, const ScriptAcciones& scr
     return obtenerAccionScript(script, motor.jugador->alias, motor.numeroOleada, motor.tickActual);
 }
 
-bool ejecutarModoLotes(Jugador& jugador, int numeroOleada, const ColaSpawn& spawns, const ScriptAcciones& script, int limiteTicks, ResultadoModoLotes& resultado) {
+bool ejecutarModoLotes(Jugador& jugador, int numeroOleada, const ColaSpawn& spawns, const ScriptAcciones& script, int limiteTicks, ResultadoModoLotes& resultado, BitacoraEventos* bitacora) {
     Motor motor;
-    inicializarMotor(motor, &jugador, numeroOleada, spawns);
+    inicializarMotor(motor, &jugador, numeroOleada, spawns, bitacora);
 
     while (!motor.turnoTerminado && motor.tickActual < limiteTicks) {
         AccionMotor accion = obtenerAccionModoLotes(motor, script);

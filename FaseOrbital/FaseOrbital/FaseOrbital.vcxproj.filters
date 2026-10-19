@@ -84,6 +84,30 @@
     <ClCompile Include="Prueba08.cpp">
       <Filter>pruebas</Filter>
     </ClCompile>
+    <ClCompile Include="BitacoraEventos.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="HistorialPartidas.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="ListaPuntajes.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasEstadisticas.cpp">
+      <Filter>pruebas</Filter>
+    </ClCompile>
+    <ClCompile Include="Estadisticas.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="Ranking.cpp">
+      <Filter>estructuras</Filter>
+    </ClCompile>
+    <ClCompile Include="Persistencia.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasPersistencia.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
@@ -163,6 +187,39 @@
     </ClInclude>
     <ClInclude Include="Prueba08.h">
       <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="Evento.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="BitacoraEventos.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="MetricasJugador.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="RegistroPartida.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="HistorialPartidas.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="ListaPuntajes.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasEstadisticas.h">
+      <Filter>pruebas</Filter>
+    </ClInclude>
+    <ClInclude Include="Estadisticas.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="Ranking.h">
+      <Filter>estructuras</Filter>
+    </ClInclude>
+    <ClInclude Include="Persistencia.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasPersistencia.h">
+      <Filter>juego</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

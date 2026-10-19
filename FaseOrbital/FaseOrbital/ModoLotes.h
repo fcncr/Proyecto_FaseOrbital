@@ -14,7 +14,7 @@ struct ResultadoModoLotes {
     bool turnoTerminado;
 };
 
-bool ejecutarModoLotes(Jugador& jugador, int numeroOleada, const ColaSpawn& spawns, const ScriptAcciones& script, int limiteTicks, ResultadoModoLotes& resultado);
 AccionMotor obtenerAccionModoLotes(const Motor& motor, const ScriptAcciones& script);
+bool ejecutarModoLotes(Jugador& jugador, int numeroOleada, const ColaSpawn& spawns, const ScriptAcciones& script, int limiteTicks, ResultadoModoLotes& resultado, BitacoraEventos* bitacora = nullptr);
 
 #endif

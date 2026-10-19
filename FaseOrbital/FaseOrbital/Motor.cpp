@@ -13,8 +13,138 @@ static void polarACartesiano(double radio, double angulo, double& x, double& y) 
     y = radio * sin(radianes);
 }
 
-static void aplicarDanioNucleo(Motor& motor, int danio) {
-    if (motor.jugador == nullptr) return;
+static void registrarEventoMotor(Motor& motor, TipoEvento tipoEvento, int tipoEnemigo, int color, int valor) {
+    if (motor.bitacora == nullptr || motor.jugador == nullptr) {
+        return;
+    }
+
+    Evento evento;
+    evento.tick = motor.tickActual;
+    evento.oleada = motor.numeroOleada;
+    evento.jugador = motor.jugador->alias;
+    evento.tipoEvento = tipoEvento;
+    evento.tipoEnemigo = tipoEnemigo;
+    evento.color = color;
+    evento.valor = valor;
+
+    agregarEventoFinal(*motor.bitacora, evento);
+}
+
+static void registrarImpactoMetricas(Motor& motor, int color, bool correcto) {
+    if (motor.jugador == nullptr) {
+        return;
+    }
+
+    MetricasJugador& metricas = motor.jugador->metricas;
+
+    if (correcto) {
+        metricas.impactosCorrectos++;
+    }
+    else {
+        metricas.impactosErroneos++;
+    }
+
+    if (color == 0) {
+        if (correcto) metricas.impactosCorrectosC++;
+        else metricas.impactosErroneosC++;
+    }
+    else if (color == 1) {
+        if (correcto) metricas.impactosCorrectosM++;
+        else metricas.impactosErroneosM++;
+    }
+    else if (color == 2) {
+        if (correcto) metricas.impactosCorrectosA++;
+        else metricas.impactosErroneosA++;
+    }
+}
+
+static void registrarBajaMetricas(Motor& motor, const Enemigo& enemigo) {
+    if (motor.jugador == nullptr) {
+        return;
+    }
+
+    MetricasJugador& metricas = motor.jugador->metricas;
+
+    switch (enemigo.tipo) {
+    case Dron:
+        metricas.bajasDron++;
+        break;
+    case Girador:
+        metricas.bajasGirador++;
+        break;
+    case Divisor:
+        metricas.bajasDivisor++;
+        break;
+    case Mini:
+        metricas.bajasMini++;
+        break;
+    case Tanque:
+        metricas.bajasTanque++;
+        break;
+    case Camaleon:
+        metricas.bajasCamaleon++;
+        break;
+    }
+
+    if (enemigo.color == 0) metricas.bajasColor0++;
+    else if (enemigo.color == 1) metricas.bajasColor1++;
+    else if (enemigo.color == 2) metricas.bajasColor2++;
+
+    if (motor.jugador->combo > metricas.comboMaximo) {
+        metricas.comboMaximo = motor.jugador->combo;
+    }
+}
+
+static void registrarDanoMetricas(Motor& motor, TipoEnemigo tipo, int dano) {
+    if (motor.jugador == nullptr) {
+        return;
+    }
+
+    MetricasJugador& metricas = motor.jugador->metricas;
+    metricas.danoTotal += dano;
+
+    switch (tipo) {
+    case Dron:
+        metricas.danoDron += dano;
+        break;
+    case Girador:
+        metricas.danoGirador += dano;
+        break;
+    case Divisor:
+        metricas.danoDivisor += dano;
+        break;
+    case Mini:
+        metricas.danoMini += dano;
+        break;
+    case Tanque:
+        metricas.danoTanque += dano;
+        break;
+    case Camaleon:
+        metricas.danoCamaleon += dano;
+        break;
+    }
+}
+
+static void actualizarMetricasPasoTick(Motor& motor) {
+    if (motor.jugador == nullptr) {
+        return;
+    }
+
+    MetricasJugador& metricas = motor.jugador->metricas;
+
+    metricas.ticksSobrevividos++;
+    metricas.puntaje = motor.jugador->puntaje;
+    metricas.oleadaAlcanzada = motor.jugador->oleadaAlcanzada;
+
+    actualizarMetricasCalculadas(metricas);
+}
+
+static int aplicarDanioNucleo(Motor& motor, int danio) {
+    if (motor.jugador == nullptr) {
+        return 0;
+    }
+
+    int vidaAntes = motor.jugador->vidaNucleo;
 
     motor.jugador->vidaNucleo -= danio;
 
@@ -23,6 +153,8 @@ static void aplicarDanioNucleo(Motor& motor, int danio) {
     }
 
     motor.jugador->combo = 0;
+
+    return vidaAntes - motor.jugador->vidaNucleo;
 }
 
 static bool hayColisionBalaEnemigo(const Bala& bala, const Enemigo& enemigo) {
@@ -39,14 +171,20 @@ static bool hayColisionBalaEnemigo(const Bala& bala, const Enemigo& enemigo) {
     return distancia < enemigo.radio;
 }
 
-static void premiarBajaPorPulso(Motor& motor, TipoEnemigo tipo) {
-    if (motor.jugador == nullptr) return;
+static int premiarBajaPorPulso(Motor& motor, TipoEnemigo tipo) {
+    if (motor.jugador == nullptr) {
+        return 0;
+    }
 
     int multiplicador = calcularMultiplicador(motor.jugador->combo);
-    motor.jugador->puntaje += puntosBaseEnemigo(tipo) * multiplicador;
+    int puntos = puntosBaseEnemigo(tipo) * multiplicador;
+
+    motor.jugador->puntaje += puntos;
+
+    return puntos;
 }
 
-void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const ColaSpawn& spawns) {
+void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const ColaSpawn& spawns, BitacoraEventos* bitacora) {
     motor.tickActual = 0;
     motor.numeroOleada = numeroOleada;
 
@@ -58,6 +196,7 @@ void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const Co
     motor.pulso.radioActual = 0.0;
 
     motor.jugador = jugador;
+    motor.bitacora = bitacora;
 
     inicializarListaEnemigos(motor.enemigos);
     inicializarListaBalas(motor.balas);
@@ -65,11 +204,12 @@ void inicializarMotor(Motor& motor, Jugador* jugador, int numeroOleada, const Co
     copiarColaSpawn(spawns, motor.spawns);
 
     motor.siguienteIdEnemigo = 1;
-
     motor.oleadaTerminada = false;
     motor.turnoTerminado = false;
 
-    if (motor.jugador != nullptr) motor.jugador->combo = 0;
+    if (motor.jugador != nullptr) {
+        motor.jugador->combo = 0;
+    }
 }
 
 void destruirMotor(Motor& motor) {
@@ -78,6 +218,7 @@ void destruirMotor(Motor& motor) {
     destruirColaSpawn(motor.spawns);
 
     motor.jugador = nullptr;
+    motor.bitacora = nullptr;
 }
 
 double normalizarAngulo(double angulo) {
@@ -98,6 +239,9 @@ void aplicarAccion(Motor& motor, const AccionMotor& accion) {
         motor.pulso.activo = true;
         motor.pulso.radioActual = 20.0;
         motor.jugador->cargaPulso = 0;
+
+        motor.jugador->metricas.pulsosUtilizados++;
+        registrarEventoMotor(motor, PULSO, -1, -1, 0);
     }
 }
 
@@ -254,6 +398,9 @@ void dispararAutomaticamente(Motor& motor) {
     };
 
     insertarInicio(motor.balas, bala);
+    if (motor.jugador != nullptr) { //los disparos no generan Evento
+        motor.jugador->metricas.disparos++;
+    }
 }
 
 void resolverChoquesEnemigos(Motor& motor) {
@@ -280,15 +427,28 @@ void resolverChoquesEnemigos(Motor& motor) {
         bool choqueNucleo = actual->dato.r <= 20.0 + 0.4 * actual->dato.radio;
 
         if (choqueNave) {
-            aplicarDanioNucleo(motor, 12);
-            actual = eliminarEnemigo(motor.enemigos, actual);
-        }
-        else if (choqueNucleo) {
-            int danio = actual->dato.tipo == Tanque ? 22 : 10;
+            Enemigo enemigo = actual->dato;
 
-            aplicarDanioNucleo(motor, danio);
+            int danoAplicado = aplicarDanioNucleo(motor, 12);
+
+            registrarDanoMetricas(motor, enemigo.tipo, danoAplicado);
+            registrarEventoMotor(motor, CHOQUE_NAVE, static_cast<int>(enemigo.tipo), enemigo.color, danoAplicado);
+
             actual = eliminarEnemigo(motor.enemigos, actual);
         }
+
+        else if (choqueNucleo) {
+            Enemigo enemigo = actual->dato;
+            int dano = enemigo.tipo == Tanque ? 22 : 10;
+
+            int danoAplicado = aplicarDanioNucleo(motor, dano);
+
+            registrarDanoMetricas(motor, enemigo.tipo, danoAplicado);
+            registrarEventoMotor(motor, DANO_NUCLEO, static_cast<int>(enemigo.tipo), enemigo.color, danoAplicado);
+
+            actual = eliminarEnemigo(motor.enemigos, actual);
+        }
+
         else {
             actual = actual->sig;
         }
@@ -328,13 +488,17 @@ int puntosBaseEnemigo(TipoEnemigo tipo) {
     return 0;
 }
 
-static void premiarBajaPorBala(Motor& motor, TipoEnemigo tipo) {
-    if (motor.jugador == nullptr) return;
+static int premiarBajaPorBala(Motor& motor, TipoEnemigo tipo) {
+    if (motor.jugador == nullptr) {
+        return 0;
+    }
 
     motor.jugador->combo++;
 
     int multiplicador = calcularMultiplicador(motor.jugador->combo);
-    motor.jugador->puntaje += puntosBaseEnemigo(tipo) * multiplicador;
+    int puntos = puntosBaseEnemigo(tipo) * multiplicador;
+
+    motor.jugador->puntaje += puntos;
 
     if (tipo == Tanque) motor.jugador->cargaPulso += 14;
     else motor.jugador->cargaPulso += 5;
@@ -342,6 +506,12 @@ static void premiarBajaPorBala(Motor& motor, TipoEnemigo tipo) {
     if (motor.jugador->cargaPulso > 100) {
         motor.jugador->cargaPulso = 100;
     }
+
+    if (motor.jugador->combo > motor.jugador->metricas.comboMaximo) {
+        motor.jugador->metricas.comboMaximo = motor.jugador->combo;
+    }
+
+    return puntos;
 }
 
 static void insertarMinisDeDivisor(Motor& motor, NodoEnemigo* divisor) {
@@ -399,14 +569,18 @@ void moverBalasYResolverImpactos(Motor& motor) {
                     eliminarBala = true;
 
                     if (balaActual->dato.color == enemigoActual->dato.color) {
+                        registrarImpactoMetricas(motor, balaActual->dato.color, true);
+
                         enemigoActual->dato.vida--;
 
                         if (enemigoActual->dato.vida <= 0) {
-                            TipoEnemigo tipoMuerto = enemigoActual->dato.tipo;
+                            Enemigo enemigoMuerto = enemigoActual->dato;
+                            int puntos = premiarBajaPorBala(motor, enemigoMuerto.tipo);
 
-                            premiarBajaPorBala(motor, tipoMuerto);
+                            registrarBajaMetricas(motor, enemigoMuerto);
+                            registrarEventoMotor(motor, BAJA, static_cast<int>(enemigoMuerto.tipo), enemigoMuerto.color, puntos);
 
-                            if (tipoMuerto == Divisor) {
+                            if (enemigoMuerto.tipo == Divisor) {
                                 insertarMinisDeDivisor(motor, enemigoActual);
                             }
 
@@ -414,6 +588,9 @@ void moverBalasYResolverImpactos(Motor& motor) {
                         }
                     }
                     else {
+                        registrarImpactoMetricas(motor, balaActual->dato.color, false);
+                        registrarEventoMotor(motor, IMPACTO_ERRONEO, static_cast<int>(enemigoActual->dato.tipo), balaActual->dato.color, 0);
+
                         enemigoActual->dato.r += 9.0;
 
                         if (motor.jugador != nullptr) {
@@ -436,6 +613,7 @@ void moverBalasYResolverImpactos(Motor& motor) {
         }
     }
 }
+
 void actualizarPulso(Motor& motor) {
     if (!motor.pulso.activo) return;
 
@@ -453,16 +631,19 @@ void actualizarPulso(Motor& motor) {
         double diferencia = fabs(actual->dato.r - motor.pulso.radioActual);
 
         if (diferencia < actual->dato.radio + 3.0) {
-            TipoEnemigo tipoMuerto = actual->dato.tipo;
+            Enemigo enemigoMuerto = actual->dato;
+            int puntos = premiarBajaPorPulso(motor, enemigoMuerto.tipo);
 
-            premiarBajaPorPulso(motor, tipoMuerto);
+            registrarBajaMetricas(motor, enemigoMuerto);
+            registrarEventoMotor(motor, BAJA, static_cast<int>(enemigoMuerto.tipo), enemigoMuerto.color, puntos);
 
-            if (tipoMuerto == Divisor) {
+            if (enemigoMuerto.tipo == Divisor) {
                 insertarMinisDeDivisor(motor, actual);
             }
 
             actual = eliminarEnemigo(motor.enemigos, actual);
         }
+
         else {
             actual = actual->sig;
         }
@@ -477,6 +658,9 @@ void verificarFinMotor(Motor& motor) {
 
     if (motor.jugador->vidaNucleo <= 0) {
         motor.jugador->vidaNucleo = 0;
+
+        registrarEventoMotor(motor, ELIMINACION, -1, -1, 0);
+
         motor.turnoTerminado = true;
         return;
     }
@@ -484,6 +668,8 @@ void verificarFinMotor(Motor& motor) {
     if (!motor.oleadaTerminada && colaSpawnVacia(motor.spawns) && listaEnemigosVacia(motor.enemigos)) {
         motor.oleadaTerminada = true;
         motor.turnoTerminado = true;
+
+        registrarEventoMotor(motor, FIN_OLEADA, -1, -1, 0);
 
         motor.jugador->vidaNucleo += 8;
 
@@ -512,7 +698,7 @@ void procesarTick(Motor& motor, const AccionMotor& accion) {
 
     actualizarPulso(motor);
 
-    // Paso 9 reservado para eventos y estadisticas.
+    actualizarMetricasPasoTick(motor);
 
     verificarFinMotor(motor);
 
