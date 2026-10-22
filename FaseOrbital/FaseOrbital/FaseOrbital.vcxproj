@@ -155,6 +155,7 @@
     <ClCompile Include="FaseOrbital.cpp" />
     <ClCompile Include="Generador.cpp" />
     <ClCompile Include="HistorialPartidas.cpp" />
+    <ClCompile Include="InterfazAllegro.cpp" />
     <ClCompile Include="ListaBalas.cpp" />
     <ClCompile Include="ListaEnemigos.cpp" />
     <ClCompile Include="ListaPuntajes.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="Evento.h" />
     <ClInclude Include="Generador.h" />
     <ClInclude Include="HistorialPartidas.h" />
+    <ClInclude Include="InterfazAllegro.h" />
     <ClInclude Include="Jugador.h" />
     <ClInclude Include="ListaBalas.h" />
     <ClInclude Include="ListaEnemigos.h" />

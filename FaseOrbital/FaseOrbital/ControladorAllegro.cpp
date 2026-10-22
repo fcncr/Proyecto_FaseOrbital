@@ -24,6 +24,7 @@ void inicializarEstadoControles(EstadoControles& controles) {
 
     controles.solicitarPulso = false;
     controles.alternarPausa = false;
+    controles.volverMenu = false;
 }
 
 void procesarEventoControlador(
@@ -60,7 +61,11 @@ void procesarEventoControlador(
         case ALLEGRO_KEY_ESCAPE:
             controles.alternarPausa = true;
             break;
+        case ALLEGRO_KEY_M:
+            controles.volverMenu = true;
+            break;
         }
+ 
     }
 
     if (evento.type == ALLEGRO_EVENT_KEY_UP) {
@@ -122,5 +127,16 @@ bool consumirAlternarPausa(EstadoControles& controles) {
     }
 
     controles.alternarPausa = false;
+    return true;
+}
+
+bool consumirVolverMenu(
+    EstadoControles& controles
+) {
+    if (!controles.volverMenu) {
+        return false;
+    }
+
+    controles.volverMenu = false;
     return true;
 }

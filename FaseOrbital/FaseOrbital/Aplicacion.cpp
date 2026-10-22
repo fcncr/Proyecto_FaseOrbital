@@ -14,8 +14,8 @@
 #include "Estadisticas.h"
 #include "Ranking.h"
 #include "VistaAllegro.h"
+#include "InterfazAllegro.h"
 
-#include "VistaAllegro.h"
 #include "ControladorAllegro.h"
 #include "Bot.h"
 
@@ -126,10 +126,24 @@ static void mostrarEstadisticasJugador(const EstadisticasJugador& estadisticas) 
 
     std::cout << '\n';
 }
-static bool ejecutarTurnoGrafico(
-    Partida& partida,
-    VistaAllegro& vista
+
+static bool registrarJugadoresGraficos(Partida& partida, const RegistroGrafico& registro
 ) {
+    for (int i = 0; i < registro.cantidadJugadores; i++) {
+
+        const std::string& alias = registro.aliasJugadores[i];
+
+        bool esBot = esAliasBot(alias);
+
+        if (!agregarJugadorPartida( partida, alias, esBot )) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool ejecutarTurnoGrafico(Partida& partida, VistaAllegro& vista, EstadoInterfaz& estado, bool& cerrarAplicacion, bool& abandonarPartida) {
     Jugador* jugador = verJugadorActualPartida(partida);
 
     if (jugador == nullptr) {
@@ -141,124 +155,208 @@ static bool ejecutarTurnoGrafico(
         jugador->metricas.oleadaAlcanzada = partida.numeroRonda;
     }
 
-    generarColaOriginalRonda(partida);
-
     ColaSpawn colaJugador;
     inicializarColaSpawn(colaJugador);
-
     prepararColaJugador(partida, colaJugador);
 
     Motor motor;
-
-    inicializarMotor(
-        motor,
-        jugador,
-        partida.numeroRonda,
-        colaJugador,
-        &partida.bitacora
-    );
+    inicializarMotor(motor, jugador, partida.numeroRonda, colaJugador, &partida.bitacora);
 
     EstadoControles controles;
     inicializarEstadoControles(controles);
 
-    bool ejecutando = true;
     bool pausado = false;
+    estado.pantallaActual = PANTALLA_JUEGO;
 
+    al_flush_event_queue(vista.colaEventos);
     al_start_timer(vista.timer);
 
     dibujarMotor(vista, motor, pausado);
 
-    while (ejecutando && !motor.turnoTerminado) {
+    while (!cerrarAplicacion && !abandonarPartida && !motor.turnoTerminado) {
         ALLEGRO_EVENT evento;
-
-        al_wait_for_event(
-            vista.colaEventos,
-            &evento
-        );
+        al_wait_for_event(vista.colaEventos, &evento);
 
         if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-            ejecutando = false;
+            cerrarAplicacion = true;
         }
         else {
-            procesarEventoControlador(
-                evento,
-                controles
-            );
+            procesarEventoControlador(evento, controles);
 
             if (consumirAlternarPausa(controles)) {
                 pausado = !pausado;
+
+                if (pausado) {
+                    estado.pantallaActual = PANTALLA_PAUSA;
+                }
+                else {
+                    estado.pantallaActual = PANTALLA_JUEGO;
+                }
             }
 
-            if (evento.type == ALLEGRO_EVENT_TIMER &&
-                !pausado) {
+            bool solicitarVolverMenu = consumirVolverMenu(controles);
 
+            if (solicitarVolverMenu && pausado) {
+                abandonarPartida = true;
+            }
+
+            if (evento.type == ALLEGRO_EVENT_TIMER && !pausado && !abandonarPartida) {
                 AccionMotor accion;
 
                 if (jugador->esBot) {
                     accion = obtenerAccionBot(motor);
                 }
                 else {
-                    accion = obtenerAccionAllegro(
-                        controles,
-                        motor
-                    );
+                    accion = obtenerAccionAllegro(controles, motor);
                 }
 
-                procesarTick(
-                    motor,
-                    accion
-                );
+                procesarTick(motor, accion);
             }
         }
 
-        if (al_is_event_queue_empty(vista.colaEventos)) {
-            dibujarMotor(
-                vista,
-                motor,
-                pausado
-            );
+        if (!cerrarAplicacion && !abandonarPartida && al_is_event_queue_empty(vista.colaEventos)) {
+            dibujarMotor(vista, motor, pausado);
         }
     }
 
     al_stop_timer(vista.timer);
 
-    bool turnoTermino = motor.turnoTerminado;
-
     destruirMotor(motor);
     destruirColaSpawn(colaJugador);
 
-    if (turnoTermino) {
-        bool eliminado =
-            retirarJugadorActualSiEliminado(partida);
+    return true;
+}
 
-        if (!partida.finalizada && !eliminado) {
-            finalizarRondaPartida(partida);
+static bool ejecutarRondaGrafica(Partida& partida, VistaAllegro& vista, EstadoInterfaz& estado, bool& cerrarAplicacion, bool& abandonarPartida) {
+    if (partida.finalizada || cantidadJugadoresActivos(partida) <= 0) {
+        return false;
+    }
+
+    generarColaOriginalRonda(partida);
+
+    int turnosDeLaRonda = cantidadJugadoresActivos(partida);
+
+    for (int i = 0; i < turnosDeLaRonda; i++) {
+        Jugador* jugador = verJugadorActualPartida(partida);
+
+        if (jugador == nullptr) {
+            return false;
         }
+
+        mostrarAnuncioTurno(vista, estado, *jugador, partida.numeroRonda, cerrarAplicacion);
+
+        if (cerrarAplicacion) {
+            return true;
+        }
+
+        std::cout << "Ronda " << partida.numeroRonda << " - Turno de " << jugador->alias;
+
+        if (jugador->esBot) {
+            std::cout << " [BOT]";
+        }
+
+        std::cout << '\n';
+
+        if (!ejecutarTurnoGrafico(partida, vista, estado, cerrarAplicacion, abandonarPartida)) {
+            return false;
+        }
+
+        if (cerrarAplicacion || abandonarPartida) {
+            return true;
+        }
+
+        bool eliminado = retirarJugadorActualSiEliminado(partida);
+
+        if (partida.finalizada) {
+            break;
+        }
+
+        if (i < turnosDeLaRonda - 1 && !eliminado) {
+            avanzarTurnoPartida(partida);
+        }
+    }
+
+    if (!cerrarAplicacion && !abandonarPartida) {
+        mostrarResumenOleada(vista, estado, partida, cerrarAplicacion);
+    }
+
+    if (!partida.finalizada && !cerrarAplicacion && !abandonarPartida) {
+        finalizarRondaPartida(partida);
     }
 
     return true;
 }
 
+static void mostrarLineaTiempoPartida(const Partida& partida
+) {
+    std::cout << '\n';
+    std::cout
+        << "=== LINEA DE TIEMPO ==="
+        << '\n'
+        << '\n';
+
+    for (int i = 0;
+        i < partida.cantidadJugadores;
+        i++) {
+
+        const Jugador& jugador =
+            partida.jugadores[i];
+
+        imprimirLineaTiempoJugador(
+            partida.bitacora,
+            jugador.alias,
+            jugador.oleadaAlcanzada,
+            std::cout
+        );
+
+        std::cout << '\n';
+    }
+}
+
+static bool guardarPartidaGrafica(Partida& partida, const std::string& rutaHistorial
+) {
+    HistorialPartidas historialExistente;
+    HistorialPartidas nuevosResultados;
+
+    inicializarHistorial(historialExistente);
+
+    inicializarHistorial(nuevosResultados);
+
+    if (existeArchivo(rutaHistorial)) {
+        if (!cargarHistorialCSV(
+            rutaHistorial,
+            historialExistente,
+            std::cerr
+        )) {
+            destruirHistorial(
+                historialExistente
+            );
+
+            destruirHistorial(
+                nuevosResultados
+            );
+
+            return false;
+        }
+    }
+
+    int idPartida = obtenerSiguienteIdPartida(historialExistente);
+
+    agregarResultadosPartidaHistorial(partida, idPartida, "grafico", nuevosResultados);
+
+    bool guardado = agregarHistorialCSV(rutaHistorial, nuevosResultados);
+
+    destruirHistorial(historialExistente);
+
+    destruirHistorial(nuevosResultados);
+
+    return guardado;
+}
+
 int ejecutarAplicacionGrafica(
     const ConfiguracionPrograma& config
 ) {
-    Partida partida;
     VistaAllegro vista;
-
-    inicializarPartida(
-        partida,
-        config.semilla,
-        config.oleadas
-    );
-
-    if (!agregarJugadorPartida(
-        partida,
-        "JUGADOR",
-        false
-    )) {
-        destruirPartida(partida);
-        return 1;
-    }
 
     if (!inicializarVistaAllegro(
         vista,
@@ -269,18 +367,166 @@ int ejecutarAplicacionGrafica(
             << "No se pudo inicializar Allegro."
             << '\n';
 
-        destruirPartida(partida);
         return 1;
     }
 
-    bool resultado =
-        ejecutarTurnoGrafico(
+    EstadoInterfaz estado;
+    inicializarEstadoInterfaz(
+        estado
+    );
+
+    bool cerrarAplicacion = false;
+    bool resultado = true;
+
+    while (!cerrarAplicacion) {
+        OpcionMenuPrincipal opcion =
+            ejecutarMenuPrincipal(
+                vista,
+                estado,
+                cerrarAplicacion
+            );
+
+        if (cerrarAplicacion ||
+            opcion == MENU_SALIR) {
+
+            break;
+        }
+
+        if (opcion ==
+            MENU_ESTADISTICAS) {
+
+            mostrarPantallaInformativa(
+                vista,
+                estado,
+                PANTALLA_ESTADISTICAS,
+                "ESTADISTICAS",
+                "La pantalla historica se integra en F5.5.",
+                cerrarAplicacion
+            );
+
+            continue;
+        }
+
+        if (opcion ==
+            MENU_RANKING) {
+
+            mostrarPantallaInformativa(
+                vista,
+                estado,
+                PANTALLA_RANKING,
+                "RANKING TOP 10",
+                "La pantalla de ranking se integra en F5.5.",
+                cerrarAplicacion
+            );
+
+            continue;
+        }
+
+        RegistroGrafico registro;
+
+        bool registroCompletado =
+            ejecutarRegistroJugadores(
+                vista,
+                estado,
+                registro,
+                cerrarAplicacion
+            );
+
+        if (cerrarAplicacion) {
+            break;
+        }
+
+        if (!registroCompletado) {
+            continue;
+        }
+
+        Partida partida;
+
+        inicializarPartida(
             partida,
-            vista
+            config.semilla,
+            config.oleadas
         );
 
-    destruirVistaAllegro(vista);
-    destruirPartida(partida);
+        if (!registrarJugadoresGraficos(
+            partida,
+            registro
+        )) {
+            std::cerr
+                << "No se pudieron registrar "
+                << "los jugadores graficos."
+                << '\n';
+
+            destruirPartida(
+                partida
+            );
+
+            resultado = false;
+            break;
+        }
+
+        bool abandonarPartida = false;
+
+        while (!partida.finalizada && !cerrarAplicacion && !abandonarPartida) {
+            if (!ejecutarRondaGrafica(
+                partida,
+                vista,
+                estado,
+                cerrarAplicacion,
+                abandonarPartida
+            )) {
+                resultado = false;
+                break;
+            }
+        }
+
+        if (!resultado) {
+            destruirPartida(
+                partida
+            );
+
+            break;
+        }
+
+        if (!cerrarAplicacion &&
+            partida.finalizada) {
+
+            actualizarMetricasFinalesPartida(
+                partida
+            );
+
+            mostrarFinPartida(
+                vista,
+                estado,
+                partida,
+                cerrarAplicacion
+            );
+
+            if (!cerrarAplicacion) {
+                if (!guardarPartidaGrafica(
+                    partida,
+                    config.rutaHistorial
+                )) {
+                    std::cerr
+                        << "No se pudo guardar "
+                        << "la partida grafica."
+                        << '\n';
+                }
+
+                mostrarLineaTiempoPartida(
+                    partida
+                );
+            }
+        }
+
+        destruirPartida(
+            partida
+        );
+    }
+
+    destruirVistaAllegro(
+        vista
+    );
 
     return resultado ? 0 : 1;
 }
@@ -501,3 +747,6 @@ int ejecutarAplicacion(const ConfiguracionPrograma& config) {
         return 1;
     }
 }
+
+
+

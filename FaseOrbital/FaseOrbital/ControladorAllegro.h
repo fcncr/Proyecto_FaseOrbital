@@ -16,6 +16,8 @@ struct EstadoControles {
 
     bool solicitarPulso;
     bool alternarPausa;
+
+    bool volverMenu;
 };
 
 void inicializarEstadoControles(EstadoControles& controles);
@@ -31,5 +33,6 @@ AccionMotor obtenerAccionAllegro(
 );
 
 bool consumirAlternarPausa(EstadoControles& controles);
+bool consumirVolverMenu(EstadoControles& controles);
 
 #endif

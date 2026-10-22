@@ -129,6 +129,9 @@
     <ClCompile Include="ControladorAllegro.cpp">
       <Filter>juego</Filter>
     </ClCompile>
+    <ClCompile Include="InterfazAllegro.cpp">
+      <Filter>juego</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TipoEnemigo.h">
@@ -261,6 +264,9 @@
       <Filter>juego</Filter>
     </ClInclude>
     <ClInclude Include="ControladorAllegro.h">
+      <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="InterfazAllegro.h">
       <Filter>juego</Filter>
     </ClInclude>
   </ItemGroup>
