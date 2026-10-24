@@ -181,29 +181,25 @@
     <ClCompile Include="VistaAllegro.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="AccionMotor.h" />
     <ClInclude Include="Aplicacion.h" />
     <ClInclude Include="ArgumentosCLI.h" />
-    <ClInclude Include="Bala.h" />
     <ClInclude Include="BitacoraEventos.h" />
     <ClInclude Include="Bot.h" />
     <ClInclude Include="ColaSpawn.h" />
     <ClInclude Include="ControladorAllegro.h" />
     <ClInclude Include="EjecutorPruebas.h" />
-    <ClInclude Include="Enemigo.h" />
     <ClInclude Include="Estadisticas.h" />
-    <ClInclude Include="Evento.h" />
     <ClInclude Include="Generador.h" />
     <ClInclude Include="HistorialPartidas.h" />
     <ClInclude Include="InterfazAllegro.h" />
-    <ClInclude Include="Jugador.h" />
     <ClInclude Include="ListaBalas.h" />
     <ClInclude Include="ListaEnemigos.h" />
     <ClInclude Include="ListaPuntajes.h" />
-    <ClInclude Include="MetricasJugador.h" />
+    <ClInclude Include="ModelosCombate.h" />
+    <ClInclude Include="ModelosJugador.h" />
+    <ClInclude Include="ModelosRegistros.h" />
     <ClInclude Include="ModoLotes.h" />
     <ClInclude Include="Motor.h" />
-    <ClInclude Include="Nave.h" />
     <ClInclude Include="Oleada.h" />
     <ClInclude Include="Partida.h" />
     <ClInclude Include="Persistencia.h" />
@@ -217,14 +213,10 @@
     <ClInclude Include="PruebasMotor.h" />
     <ClInclude Include="PruebasOleada.h" />
     <ClInclude Include="PruebasPersistencia.h" />
-    <ClInclude Include="Pulso.h" />
     <ClInclude Include="Ranking.h" />
-    <ClInclude Include="RegistroPartida.h" />
     <ClInclude Include="ReportePartida.h" />
     <ClInclude Include="RondaJugadores.h" />
     <ClInclude Include="ScriptAcciones.h" />
-    <ClInclude Include="Spawn.h" />
-    <ClInclude Include="TipoEnemigo.h" />
     <ClInclude Include="VistaAllegro.h" />
   </ItemGroup>
   <ItemGroup>

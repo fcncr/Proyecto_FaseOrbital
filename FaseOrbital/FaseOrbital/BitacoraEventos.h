@@ -2,7 +2,7 @@
 #ifndef BITACORA_EVENTOS_H
 #define BITACORA_EVENTOS_H
 
-#include "../FaseOrbital/Evento.h"
+#include "ModelosRegistros.h" //llama a struct "Evento"
 
 struct NodoEvento {
     Evento dato;

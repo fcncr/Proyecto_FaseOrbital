@@ -1,7 +1,7 @@
 #ifndef RONDA_JUGADORES_H
 #define RONDA_JUGADORES_H
 
-#include "../FaseOrbital/Jugador.h"
+#include "ModelosJugador.h" //llama a struct "Jugador"
 
 struct NodoJugador {
     Jugador* jugador;

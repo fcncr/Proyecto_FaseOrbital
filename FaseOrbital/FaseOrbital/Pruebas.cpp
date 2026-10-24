@@ -134,92 +134,7 @@ bool pruebaP06() {
 
     return resultado;
 }
-/*
-bool pruebaP07() {
-    RondaJugadores ronda;
-    inicializarRondaJugadores(ronda);
 
-    Jugador jugadorA{ "A", false, 100, 0, 0, 0 };
-    Jugador jugadorB{ "B", false, 100, 0, 0, 0 };
-    Jugador jugadorC{ "C", false, 100, 0, 0, 0 };
-
-    bool resultado = true;
-
-    agregarJugador(ronda, &jugadorA);
-    agregarJugador(ronda, &jugadorB);
-    agregarJugador(ronda, &jugadorC);
-
-    if (tamanoRonda(ronda) != 3) {
-        resultado = false;
-    }
-
-    if (verJugadorActual(ronda) != &jugadorA) {
-        resultado = false;
-    }
-
-    if (ronda.actual->sig->ant != ronda.actual || ronda.actual->ant->sig != ronda.actual) {
-        resultado = false;
-    }
-
-    avanzarJugador(ronda, true);
-
-    if (verJugadorActual(ronda) != &jugadorB) {
-        resultado = false;
-    }
-
-    avanzarJugador(ronda, false);
-
-    if (verJugadorActual(ronda) != &jugadorA) {
-        resultado = false;
-    }
-
-    Jugador* eliminado = eliminarJugadorActual(ronda, true);
-
-    if (eliminado != &jugadorA) {
-        resultado = false;
-    }
-
-    if (tamanoRonda(ronda) != 2 || verJugadorActual(ronda) != &jugadorB) {
-        resultado = false;
-    }
-
-    if (ronda.actual->sig->ant != ronda.actual || ronda.actual->ant->sig != ronda.actual) {
-        resultado = false;
-    }
-
-    eliminado = eliminarJugadorActual(ronda, false);
-
-    if (eliminado != &jugadorB) {
-        resultado = false;
-    }
-
-    if (tamanoRonda(ronda) != 1 || verJugadorActual(ronda) != &jugadorC) {
-        resultado = false;
-    }
-
-    if (ronda.actual->sig != ronda.actual || ronda.actual->ant != ronda.actual) {
-        resultado = false;
-    }
-
-    eliminado = eliminarJugadorActual(ronda, true);
-
-    if (eliminado != &jugadorC) {
-        resultado = false;
-    }
-
-    if (!rondaVacia(ronda) || ronda.actual != nullptr || tamanoRonda(ronda) != 0) {
-        resultado = false;
-    }
-
-    if (eliminarJugadorActual(ronda, true) != nullptr) {
-        resultado = false;
-    }
-
-    destruirRondaJugadores(ronda);
-
-    return resultado;
-}
-*/
 bool pruebaP07() {
     RondaJugadores ronda;
     inicializarRondaJugadores(ronda);
@@ -645,6 +560,7 @@ B gana
 static bool accionesMotorIguales(const AccionMotor& a, const AccionMotor& b) {
     return a.cambiarAngulo == b.cambiarAngulo && a.anguloObjetivo == b.anguloObjetivo && a.cambiarColor == b.cambiarColor && a.colorNuevo == b.colorNuevo && a.solicitarPulso == b.solicitarPulso;
 }
+
 bool pruebaIntegracionModoLotes() {
     ScriptAcciones script;
     inicializarScriptAcciones(script);
@@ -705,8 +621,6 @@ bool pruebaIntegracionModoLotes() {
     return resultado;
 }
 
-/*----------------------------------------------------------------------------*/
-
 static Evento crearEventoPrueba(int tick, int oleada, const std::string& jugador, TipoEvento tipoEvento, int tipoEnemigo, int color, int valor) {
     Evento evento;
     evento.tick = tick;
@@ -718,6 +632,7 @@ static Evento crearEventoPrueba(int tick, int oleada, const std::string& jugador
     evento.valor = valor;
     return evento;
 }
+
 bool pruebaBitacoraEventos() {
     BitacoraEventos bitacora;
     inicializarBitacora(bitacora);

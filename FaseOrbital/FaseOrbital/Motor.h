@@ -1,10 +1,8 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-#include "Nave.h"
-#include "Pulso.h"
-#include "AccionMotor.h"
-#include "Jugador.h"
+#include "ModelosCombate.h" //llama structs "Nave", "Pulso" y "AccionMotor"
+#include "ModelosJugador.h" //llama a struct "Jugador"
 #include "ListaEnemigos.h"
 #include "ListaBalas.h"
 #include "ColaSpawn.h"

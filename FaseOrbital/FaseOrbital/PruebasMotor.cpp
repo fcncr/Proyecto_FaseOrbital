@@ -1107,9 +1107,6 @@ bool pruebaMotorBase() {
     if (!pruebaDisparoAutomatico()) return false;
     if (!pruebaChoquesEnemigos()) return false;
     if (!pruebaEliminacionBalaPorRadio()) return false;
-    if (!pruebaP09()) return false;
-    if (!pruebaP10()) return false;
-    if (!pruebaP11()) return false;
     if (!pruebaFinMotor()) return false;
     if (!pruebaProcesarTick()) return false;
     if (!pruebaOrdenExactoTick()) return false;

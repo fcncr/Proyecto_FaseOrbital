@@ -1,7 +1,7 @@
 #ifndef LISTA_BALAS_H
 #define LISTA_BALAS_H
 
-#include "Bala.h"
+#include "ModelosCombate.h" //llama al struct "Bala"
 
 struct NodoBala {
     Bala dato;

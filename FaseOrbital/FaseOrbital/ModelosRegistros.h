@@ -1,8 +1,28 @@
-#ifndef REGISTRO_PARTIDA_H
-#define REGISTRO_PARTIDA_H
+#pragma once
+#ifndef MODELOS_REGISTROS_H
+#define MODELOS_REGISTROS_H
 
-#include <cstdint>
 #include <string>
+
+enum TipoEvento {
+    BAJA,
+    IMPACTO_ERRONEO,
+    DANO_NUCLEO,
+    CHOQUE_NAVE,
+    PULSO,
+    FIN_OLEADA,
+    ELIMINACION
+};
+
+struct Evento {
+    int tick;
+    int oleada;
+    std::string jugador;
+    TipoEvento tipoEvento;
+    int tipoEnemigo;
+    int color;
+    int valor;
+};
 
 struct RegistroPartida {
     int idPartida;

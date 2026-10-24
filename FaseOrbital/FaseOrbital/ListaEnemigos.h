@@ -1,7 +1,7 @@
 #ifndef LISTA_ENEMIGOS_H
 #define LISTA_ENEMIGOS_H
 
-#include "Enemigo.h"
+#include "ModelosCombate.h" //llama al struct "Enemigo"
 
 struct NodoEnemigo {
     Enemigo dato;

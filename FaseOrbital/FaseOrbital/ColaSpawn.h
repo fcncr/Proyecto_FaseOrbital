@@ -1,7 +1,7 @@
 #ifndef COLA_SPAWN_H
 #define COLA_SPAWN_H
 
-#include "../FaseOrbital/Spawn.h"
+#include "ModelosCombate.h" //llama a struct "Spawn"
 
 struct NodoSpawn {
     Spawn dato;

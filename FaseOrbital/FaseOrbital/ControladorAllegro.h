@@ -3,7 +3,7 @@
 
 #include <allegro5/allegro.h>
 
-#include "AccionMotor.h"
+#include "ModelosCombate.h" //llama struct "AccionMotor"
 #include "Motor.h"
 
 struct EstadoControles {

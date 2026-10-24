@@ -25,6 +25,12 @@
     <Filter Include="pruebas">
       <UniqueIdentifier>{1c7b26e9-bc39-449b-ab3c-456bc1bfc56f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pruebas\Pruebas 01-14">
+      <UniqueIdentifier>{b788c36a-67b2-4264-bba5-10ed4163622c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pruebas\Pruebas Auxiliares">
+      <UniqueIdentifier>{0395846c-ac2f-4d8d-b7a8-613208ba2c60}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FaseOrbital.cpp">
@@ -42,26 +48,14 @@
     <ClCompile Include="Oleada.cpp">
       <Filter>juego</Filter>
     </ClCompile>
-    <ClCompile Include="Pruebas.cpp">
-      <Filter>pruebas</Filter>
-    </ClCompile>
     <ClCompile Include="ListaEnemigos.cpp">
       <Filter>estructuras</Filter>
-    </ClCompile>
-    <ClCompile Include="PruebasListaEnemigos.cpp">
-      <Filter>pruebas</Filter>
     </ClCompile>
     <ClCompile Include="ListaBalas.cpp">
       <Filter>estructuras</Filter>
     </ClCompile>
-    <ClCompile Include="PruebasListaBalas.cpp">
-      <Filter>pruebas</Filter>
-    </ClCompile>
     <ClCompile Include="Motor.cpp">
       <Filter>juego</Filter>
-    </ClCompile>
-    <ClCompile Include="PruebasMotor.cpp">
-      <Filter>pruebas</Filter>
     </ClCompile>
     <ClCompile Include="ScriptAcciones.cpp">
       <Filter>juego</Filter>
@@ -69,20 +63,11 @@
     <ClCompile Include="ModoLotes.cpp">
       <Filter>juego</Filter>
     </ClCompile>
-    <ClCompile Include="PruebasOleada.cpp">
-      <Filter>pruebas</Filter>
-    </ClCompile>
     <ClCompile Include="Partida.cpp">
       <Filter>juego</Filter>
     </ClCompile>
     <ClCompile Include="Bot.cpp">
       <Filter>juego</Filter>
-    </ClCompile>
-    <ClCompile Include="PruebasBot.cpp">
-      <Filter>pruebas</Filter>
-    </ClCompile>
-    <ClCompile Include="Prueba08.cpp">
-      <Filter>pruebas</Filter>
     </ClCompile>
     <ClCompile Include="BitacoraEventos.cpp">
       <Filter>estructuras</Filter>
@@ -93,9 +78,6 @@
     <ClCompile Include="ListaPuntajes.cpp">
       <Filter>estructuras</Filter>
     </ClCompile>
-    <ClCompile Include="PruebasEstadisticas.cpp">
-      <Filter>pruebas</Filter>
-    </ClCompile>
     <ClCompile Include="Estadisticas.cpp">
       <Filter>juego</Filter>
     </ClCompile>
@@ -105,14 +87,8 @@
     <ClCompile Include="Persistencia.cpp">
       <Filter>juego</Filter>
     </ClCompile>
-    <ClCompile Include="PruebasPersistencia.cpp">
-      <Filter>juego</Filter>
-    </ClCompile>
     <ClCompile Include="ReportePartida.cpp">
       <Filter>juego</Filter>
-    </ClCompile>
-    <ClCompile Include="Prueba14.cpp">
-      <Filter>pruebas</Filter>
     </ClCompile>
     <ClCompile Include="ArgumentosCLI.cpp">
       <Filter>juego</Filter>
@@ -132,19 +108,40 @@
     <ClCompile Include="InterfazAllegro.cpp">
       <Filter>juego</Filter>
     </ClCompile>
+    <ClCompile Include="PruebasListaEnemigos.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasListaBalas.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="Pruebas.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="Prueba08.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasMotor.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasEstadisticas.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="Prueba14.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasPersistencia.cpp">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasBot.cpp">
+      <Filter>pruebas\Pruebas Auxiliares</Filter>
+    </ClCompile>
+    <ClCompile Include="PruebasOleada.cpp">
+      <Filter>pruebas\Pruebas Auxiliares</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="TipoEnemigo.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
-    <ClInclude Include="Spawn.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
     <ClInclude Include="ColaSpawn.h">
       <Filter>estructuras</Filter>
-    </ClInclude>
-    <ClInclude Include="Jugador.h">
-      <Filter>modelos</Filter>
     </ClInclude>
     <ClInclude Include="RondaJugadores.h">
       <Filter>estructuras</Filter>
@@ -155,41 +152,14 @@
     <ClInclude Include="Oleada.h">
       <Filter>juego</Filter>
     </ClInclude>
-    <ClInclude Include="Pruebas.h">
-      <Filter>pruebas</Filter>
-    </ClInclude>
-    <ClInclude Include="Enemigo.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
-    <ClInclude Include="Bala.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
     <ClInclude Include="ListaEnemigos.h">
       <Filter>estructuras</Filter>
-    </ClInclude>
-    <ClInclude Include="PruebasListaEnemigos.h">
-      <Filter>pruebas</Filter>
     </ClInclude>
     <ClInclude Include="ListaBalas.h">
       <Filter>estructuras</Filter>
     </ClInclude>
-    <ClInclude Include="PruebasListaBalas.h">
-      <Filter>pruebas</Filter>
-    </ClInclude>
-    <ClInclude Include="Nave.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
-    <ClInclude Include="Pulso.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
-    <ClInclude Include="AccionMotor.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
     <ClInclude Include="Motor.h">
       <Filter>juego</Filter>
-    </ClInclude>
-    <ClInclude Include="PruebasMotor.h">
-      <Filter>pruebas</Filter>
     </ClInclude>
     <ClInclude Include="ScriptAcciones.h">
       <Filter>juego</Filter>
@@ -197,41 +167,20 @@
     <ClInclude Include="ModoLotes.h">
       <Filter>juego</Filter>
     </ClInclude>
-    <ClInclude Include="PruebasOleada.h">
-      <Filter>pruebas</Filter>
-    </ClInclude>
     <ClInclude Include="Partida.h">
       <Filter>juego</Filter>
     </ClInclude>
     <ClInclude Include="Bot.h">
       <Filter>juego</Filter>
     </ClInclude>
-    <ClInclude Include="PruebasBot.h">
-      <Filter>pruebas</Filter>
-    </ClInclude>
-    <ClInclude Include="Prueba08.h">
-      <Filter>pruebas</Filter>
-    </ClInclude>
-    <ClInclude Include="Evento.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
     <ClInclude Include="BitacoraEventos.h">
       <Filter>estructuras</Filter>
-    </ClInclude>
-    <ClInclude Include="MetricasJugador.h">
-      <Filter>modelos</Filter>
-    </ClInclude>
-    <ClInclude Include="RegistroPartida.h">
-      <Filter>modelos</Filter>
     </ClInclude>
     <ClInclude Include="HistorialPartidas.h">
       <Filter>estructuras</Filter>
     </ClInclude>
     <ClInclude Include="ListaPuntajes.h">
       <Filter>estructuras</Filter>
-    </ClInclude>
-    <ClInclude Include="PruebasEstadisticas.h">
-      <Filter>pruebas</Filter>
     </ClInclude>
     <ClInclude Include="Estadisticas.h">
       <Filter>juego</Filter>
@@ -242,14 +191,8 @@
     <ClInclude Include="Persistencia.h">
       <Filter>juego</Filter>
     </ClInclude>
-    <ClInclude Include="PruebasPersistencia.h">
-      <Filter>juego</Filter>
-    </ClInclude>
     <ClInclude Include="ReportePartida.h">
       <Filter>juego</Filter>
-    </ClInclude>
-    <ClInclude Include="Prueba14.h">
-      <Filter>pruebas</Filter>
     </ClInclude>
     <ClInclude Include="ArgumentosCLI.h">
       <Filter>juego</Filter>
@@ -268,6 +211,45 @@
     </ClInclude>
     <ClInclude Include="InterfazAllegro.h">
       <Filter>juego</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasListaEnemigos.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasListaBalas.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="Pruebas.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="Prueba08.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasMotor.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasEstadisticas.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="Prueba14.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasPersistencia.h">
+      <Filter>pruebas\Pruebas 01-14</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasBot.h">
+      <Filter>pruebas\Pruebas Auxiliares</Filter>
+    </ClInclude>
+    <ClInclude Include="PruebasOleada.h">
+      <Filter>pruebas\Pruebas Auxiliares</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelosCombate.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelosJugador.h">
+      <Filter>modelos</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelosRegistros.h">
+      <Filter>modelos</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

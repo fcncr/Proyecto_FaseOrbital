@@ -4,7 +4,7 @@
 #include <string>
 
 #include "VistaAllegro.h"
-#include "Jugador.h"
+#include "ModelosJugador.h" //llama a struct "Jugador"
 #include "Partida.h"
 
 enum PantallaInterfaz {

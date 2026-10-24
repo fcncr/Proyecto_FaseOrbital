@@ -1,5 +1,10 @@
-#ifndef METRICAS_JUGADOR_H
-#define METRICAS_JUGADOR_H
+#pragma once
+#ifndef MODELOS_JUGADOR_H
+#define MODELOS_JUGADOR_H
+
+#include <string>
+
+using namespace std;
 
 struct MetricasJugador {
     int puntaje;
@@ -103,5 +108,18 @@ inline void actualizarMetricasCalculadas(MetricasJugador& metricas) {
     metricas.precisionM = divisionSeguraMetricas(metricas.impactosCorrectosM, metricas.impactosCorrectosM + metricas.impactosErroneosM);
     metricas.precisionA = divisionSeguraMetricas(metricas.impactosCorrectosA, metricas.impactosCorrectosA + metricas.impactosErroneosA);
 }
+
+
+struct Jugador {
+    string alias;
+    bool esBot;
+    int vidaNucleo;
+    int puntaje;
+    int combo;
+    int cargaPulso;
+    int oleadaAlcanzada;
+    bool eliminado;
+    MetricasJugador metricas;
+};
 
 #endif

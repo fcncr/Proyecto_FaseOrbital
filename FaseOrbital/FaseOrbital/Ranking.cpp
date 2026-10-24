@@ -133,7 +133,6 @@ void construirRankingDesdeHistorial(const HistorialPartidas& historial, Ranking&
                 insertarOrdenadoRanking(ranking, registro);
             }
         }
-
         actual = actual->sig;
     }
 }

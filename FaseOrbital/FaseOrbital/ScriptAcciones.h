@@ -2,7 +2,7 @@
 #define SCRIPT_ACCIONES_H
 
 #include <string>
-#include "AccionMotor.h"
+#include "ModelosCombate.h" //llama a struct "AccionMotor"
 
 struct AccionScript {
     std::string jugador;

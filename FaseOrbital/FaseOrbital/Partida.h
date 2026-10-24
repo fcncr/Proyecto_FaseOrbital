@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <string>
-#include "Jugador.h"
+#include "ModelosJugador.h" //llama a struct "Jugador"
 #include "RondaJugadores.h"
 #include "ColaSpawn.h"
 #include "ModoLotes.h"

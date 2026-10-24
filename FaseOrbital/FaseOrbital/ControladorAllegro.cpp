@@ -27,10 +27,7 @@ void inicializarEstadoControles(EstadoControles& controles) {
     controles.volverMenu = false;
 }
 
-void procesarEventoControlador(
-    const ALLEGRO_EVENT& evento,
-    EstadoControles& controles
-) {
+void procesarEventoControlador(const ALLEGRO_EVENT& evento,EstadoControles& controles) {
     if (evento.type == ALLEGRO_EVENT_KEY_DOWN) {
         switch (evento.keyboard.keycode) {
         case ALLEGRO_KEY_LEFT:
@@ -81,10 +78,7 @@ void procesarEventoControlador(
     }
 }
 
-AccionMotor obtenerAccionAllegro(
-    EstadoControles& controles,
-    const Motor& motor
-) {
+AccionMotor obtenerAccionAllegro(EstadoControles& controles,const Motor& motor) {
     AccionMotor accion = crearAccionVaciaAllegro(motor);
 
     if (controles.izquierda && !controles.derecha) {
@@ -130,9 +124,7 @@ bool consumirAlternarPausa(EstadoControles& controles) {
     return true;
 }
 
-bool consumirVolverMenu(
-    EstadoControles& controles
-) {
+bool consumirVolverMenu(EstadoControles& controles) {
     if (!controles.volverMenu) {
         return false;
     }

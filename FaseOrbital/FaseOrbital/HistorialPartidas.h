@@ -3,7 +3,7 @@
 #define HISTORIAL_PARTIDAS_H
 
 #include <string>
-#include "../FaseOrbital/RegistroPartida.h"
+#include "ModelosRegistros.h" //llama a struct "RegistroPartida"
 
 struct NodoRegistroPartida {
     RegistroPartida dato;
