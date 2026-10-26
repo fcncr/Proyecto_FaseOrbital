@@ -22,10 +22,13 @@ void agregarJugador(RondaJugadores& ronda, Jugador* jugador) {
     }
 
     NodoJugador* ultimo = ronda.actual->ant;
+
     nuevo->sig = ronda.actual;
     nuevo->ant = ultimo;
+
     ultimo->sig = nuevo;
     ronda.actual->ant = nuevo;
+
     ronda.tam++;
 }
 
@@ -33,6 +36,7 @@ void avanzarJugador(RondaJugadores& ronda, bool horario) {
     if (ronda.actual == nullptr) {
         return;
     }
+
     if (horario) {
         ronda.actual = ronda.actual->sig;
     }
@@ -51,13 +55,16 @@ Jugador* eliminarJugadorActual(RondaJugadores& ronda, bool horario) {
 
     if (ronda.tam == 1) {
         delete eliminado;
+
         ronda.actual = nullptr;
         ronda.tam = 0;
+
         return jugadorEliminado;
     }
 
     NodoJugador* anterior = eliminado->ant;
     NodoJugador* siguiente = eliminado->sig;
+
     anterior->sig = siguiente;
     siguiente->ant = anterior;
 
@@ -69,6 +76,7 @@ Jugador* eliminarJugadorActual(RondaJugadores& ronda, bool horario) {
     }
 
     delete eliminado;
+
     ronda.tam--;
 
     return jugadorEliminado;
@@ -78,6 +86,7 @@ Jugador* verJugadorActual(const RondaJugadores& ronda) {
     if (ronda.actual == nullptr) {
         return nullptr;
     }
+
     return ronda.actual->jugador;
 }
 
@@ -87,6 +96,25 @@ int tamanoRonda(const RondaJugadores& ronda) {
 
 bool rondaVacia(const RondaJugadores& ronda) {
     return ronda.actual == nullptr;
+}
+
+void recorrerRondaJugadores(const RondaJugadores& ronda, bool horario, void (*procesar)(Jugador*)) {
+    if (ronda.actual == nullptr || ronda.tam <= 0 || procesar == nullptr) {
+        return;
+    }
+
+    NodoJugador* nodo = ronda.actual;
+
+    for (int i = 0; i < ronda.tam; i++) {
+        procesar(nodo->jugador);
+
+        if (horario) {
+            nodo = nodo->sig;
+        }
+        else {
+            nodo = nodo->ant;
+        }
+    }
 }
 
 void destruirRondaJugadores(RondaJugadores& ronda) {

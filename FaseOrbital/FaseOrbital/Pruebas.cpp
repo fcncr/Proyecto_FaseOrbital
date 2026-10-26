@@ -54,85 +54,143 @@ bool pruebaP05() {
 
 bool pruebaP06() {
     ColaSpawn original;
-    ColaSpawn copia;
     inicializarColaSpawn(original);
-    inicializarColaSpawn(copia);
 
     Spawn spawn1{ 10, Dron, 0, 45, 1 };
     Spawn spawn2{ 20, Girador, 1, 90, -1 };
     Spawn spawn3{ 30, Tanque, 2, 180, 1 };
-    Spawn viejo{ 999, Camaleon, 3, 270, -1 };
 
     encolarSpawn(original, spawn1);
     encolarSpawn(original, spawn2);
     encolarSpawn(original, spawn3);
 
-    encolarSpawn(copia, viejo);
-
-    copiarColaSpawn(original, copia);
-
     bool resultado = true;
 
-    if (original.tam != 3 || copia.tam != 3) {
+    ColaSpawn copiaConstructor(original);
+
+    ColaSpawn copiaAsignacion;
+    inicializarColaSpawn(copiaAsignacion);
+
+    Spawn viejo{ 999, Camaleon, 0, 270, -1 };
+    encolarSpawn(copiaAsignacion, viejo);
+
+    copiaAsignacion = original;
+
+    if (original.tam != 3) {
         resultado = false;
     }
 
-    if (original.frente == copia.frente || original.final == copia.final) {
+    if (copiaConstructor.tam != 3) {
         resultado = false;
     }
 
-    if (original.frente == nullptr || copia.frente == nullptr) {
+    if (copiaAsignacion.tam != 3) {
         resultado = false;
     }
-    else {
-        if (original.frente->dato.tick != copia.frente->dato.tick) {
-            resultado = false;
-        }
 
-        if (original.frente->sig == copia.frente->sig) {
-            resultado = false;
-        }
+    if (original.frente == copiaConstructor.frente) {
+        resultado = false;
+    }
+
+    if (original.frente == copiaAsignacion.frente) {
+        resultado = false;
+    }
+
+    if (copiaConstructor.frente == copiaAsignacion.frente) {
+        resultado = false;
+    }
+
+    if (original.final == copiaConstructor.final) {
+        resultado = false;
+    }
+
+    if (original.final == copiaAsignacion.final) {
+        resultado = false;
     }
 
     Spawn salida;
 
-    if (!desencolarSpawn(copia, salida) || salida.tick != 10) {
+    if (!desencolarSpawn(copiaConstructor, salida) || salida.tick != 10) {
         resultado = false;
     }
 
-    if (!desencolarSpawn(copia, salida) || salida.tick != 20) {
+    if (!desencolarSpawn(copiaConstructor, salida) || salida.tick != 20) {
         resultado = false;
     }
 
-    if (!desencolarSpawn(copia, salida) || salida.tick != 30) {
+    if (!desencolarSpawn(copiaConstructor, salida) || salida.tick != 30) {
         resultado = false;
     }
 
-    if (!colaSpawnVacia(copia) || copia.frente != nullptr || copia.final != nullptr || copia.tam != 0) {
+    if (!colaSpawnVacia(copiaConstructor)) {
         resultado = false;
     }
 
-    if (original.tam != 3 || original.frente == nullptr || original.final == nullptr) {
+    if (original.tam != 3) {
         resultado = false;
     }
 
-    if (original.frente != nullptr && original.frente->dato.tick != 10) {
+    if (copiaAsignacion.tam != 3) {
         resultado = false;
     }
 
-    if (original.final != nullptr && original.final->dato.tick != 30) {
+    if (original.frente == nullptr || original.frente->dato.tick != 10) {
         resultado = false;
     }
 
-    destruirColaSpawn(copia);
-
-    if (original.tam != 3 || original.frente == nullptr) {
+    if (original.final == nullptr || original.final->dato.tick != 30) {
         resultado = false;
     }
 
+    if (copiaAsignacion.frente == nullptr || copiaAsignacion.frente->dato.tick != 10) {
+        resultado = false;
+    }
+
+    copiarColaSpawn(original, copiaConstructor);
+
+    if (copiaConstructor.tam != 3) {
+        resultado = false;
+    }
+
+    if (copiaConstructor.frente == original.frente) {
+        resultado = false;
+    }
+
+    copiaAsignacion = copiaAsignacion;
+
+    if (copiaAsignacion.tam != 3) {
+        resultado = false;
+    }
+
+    destruirColaSpawn(copiaConstructor);
+    destruirColaSpawn(copiaAsignacion);
     destruirColaSpawn(original);
 
+    if (!colaSpawnVacia(original)) {
+        resultado = false;
+    }
+
+    if (!colaSpawnVacia(copiaConstructor)) {
+        resultado = false;
+    }
+
+    if (!colaSpawnVacia(copiaAsignacion)) {
+        resultado = false;
+    }
+
     return resultado;
+}
+
+static Jugador* jugadoresRecorridos[6];
+static int cantidadJugadoresRecorridos = 0;
+
+static void registrarJugadorRecorrido(Jugador* jugador) {
+    if (cantidadJugadoresRecorridos >= 6) {
+        return;
+    }
+
+    jugadoresRecorridos[cantidadJugadoresRecorridos] = jugador;
+    cantidadJugadoresRecorridos++;
 }
 
 bool pruebaP07() {
@@ -162,6 +220,46 @@ bool pruebaP07() {
     }
     else if (ronda.actual->sig->ant != ronda.actual || ronda.actual->ant->sig != ronda.actual) {
         resultado = false;
+    }
+
+    cantidadJugadoresRecorridos = 0;
+    recorrerRondaJugadores(ronda, true, registrarJugadorRecorrido);
+
+    if (cantidadJugadoresRecorridos != 3) {
+        resultado = false;
+    }
+    else {
+        if (jugadoresRecorridos[0] != &jugadorA) {
+            resultado = false;
+        }
+
+        if (jugadoresRecorridos[1] != &jugadorB) {
+            resultado = false;
+        }
+
+        if (jugadoresRecorridos[2] != &jugadorC) {
+            resultado = false;
+        }
+    }
+
+    cantidadJugadoresRecorridos = 0;
+    recorrerRondaJugadores(ronda, false, registrarJugadorRecorrido);
+
+    if (cantidadJugadoresRecorridos != 3) {
+        resultado = false;
+    }
+    else {
+        if (jugadoresRecorridos[0] != &jugadorA) {
+            resultado = false;
+        }
+
+        if (jugadoresRecorridos[1] != &jugadorC) {
+            resultado = false;
+        }
+
+        if (jugadoresRecorridos[2] != &jugadorB) {
+            resultado = false;
+        }
     }
 
     avanzarJugador(ronda, true);
@@ -217,6 +315,13 @@ bool pruebaP07() {
     }
 
     if (!rondaVacia(ronda) || ronda.actual != nullptr || tamanoRonda(ronda) != 0) {
+        resultado = false;
+    }
+
+    cantidadJugadoresRecorridos = 0;
+    recorrerRondaJugadores(ronda, true, registrarJugadorRecorrido);
+
+    if (cantidadJugadoresRecorridos != 0) {
         resultado = false;
     }
 

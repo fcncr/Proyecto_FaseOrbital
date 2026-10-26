@@ -1,7 +1,7 @@
 #pragma once
 #ifndef MODELOS_REGISTROS_H
 #define MODELOS_REGISTROS_H
-
+#include <cstdint>
 #include <string>
 
 enum TipoEvento {

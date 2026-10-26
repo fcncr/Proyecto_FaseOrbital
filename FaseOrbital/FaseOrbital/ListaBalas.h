@@ -15,7 +15,7 @@ struct ListaBalas {
 
 void inicializarListaBalas(ListaBalas& lista);
 void insertarInicio(ListaBalas& lista, const Bala& bala);
-int eliminarBalasSi(ListaBalas& lista, int colorEliminar);
+int eliminarBalasSi(ListaBalas& lista,bool (*predicado)(const Bala&));
 int tamanoListaBalas(const ListaBalas& lista);
 bool listaBalasVacia(const ListaBalas& lista);
 void destruirListaBalas(ListaBalas& lista);

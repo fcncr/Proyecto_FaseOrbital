@@ -1,7 +1,7 @@
 #ifndef COLA_SPAWN_H
 #define COLA_SPAWN_H
 
-#include "ModelosCombate.h" //llama a struct "Spawn"
+#include "ModelosCombate.h"
 
 struct NodoSpawn {
     Spawn dato;
@@ -12,6 +12,11 @@ struct ColaSpawn {
     NodoSpawn* frente;
     NodoSpawn* final;
     int tam;
+
+    ColaSpawn();
+    ColaSpawn(const ColaSpawn& otra);
+    ColaSpawn& operator=(const ColaSpawn& otra);
+    ~ColaSpawn();
 };
 
 void inicializarColaSpawn(ColaSpawn& cola);

@@ -1,7 +1,7 @@
 #ifndef RONDA_JUGADORES_H
 #define RONDA_JUGADORES_H
 
-#include "ModelosJugador.h" //llama a struct "Jugador"
+#include "ModelosJugador.h"
 
 struct NodoJugador {
     Jugador* jugador;
@@ -21,6 +21,7 @@ Jugador* eliminarJugadorActual(RondaJugadores& ronda, bool horario);
 Jugador* verJugadorActual(const RondaJugadores& ronda);
 int tamanoRonda(const RondaJugadores& ronda);
 bool rondaVacia(const RondaJugadores& ronda);
+void recorrerRondaJugadores(const RondaJugadores& ronda, bool horario, void (*procesar)(Jugador*));
 void destruirRondaJugadores(RondaJugadores& ronda);
 
 #endif

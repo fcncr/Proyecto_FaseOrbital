@@ -2,7 +2,7 @@
 #define OLEADA_H
 
 #include <cstdint>
-#include "../FaseOrbital/ColaSpawn.h"
+#include "ColaSpawn.h"
 
 struct Oleada {
     int numero;

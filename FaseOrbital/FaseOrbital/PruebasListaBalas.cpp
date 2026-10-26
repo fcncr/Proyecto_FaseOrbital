@@ -1,6 +1,9 @@
 #include "PruebasListaBalas.h"
 #include "ListaBalas.h"
 
+static bool eliminarColorUno(const Bala& bala) {
+    return bala.color == 1;
+}
 bool pruebaP04() {
     ListaBalas lista;
     inicializarListaBalas(lista);
@@ -17,7 +20,7 @@ bool pruebaP04() {
     insertarInicio(lista, bala4);
     insertarInicio(lista, bala5);
 
-    int eliminadas = eliminarBalasSi(lista, 1);
+    int eliminadas = eliminarBalasSi(lista, eliminarColorUno);
     bool resultado = true;
 
     if (eliminadas != 3) resultado = false;
