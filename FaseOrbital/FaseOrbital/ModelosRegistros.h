@@ -46,6 +46,22 @@ struct RegistroPartida {
     int bajasMini;
     int bajasTanque;
     int bajasCamaleon;
+
+    bool detalleDisponible;
+
+    int correctosC;
+    int erroneosC;
+    int correctosM;
+    int erroneosM;
+    int correctosA;
+    int erroneosA;
+
+    int danoDron;
+    int danoGirador;
+    int danoDivisor;
+    int danoMini;
+    int danoTanque;
+    int danoCamaleon;
 };
 
 #endif

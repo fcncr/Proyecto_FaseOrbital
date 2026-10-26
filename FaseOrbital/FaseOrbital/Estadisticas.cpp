@@ -1,6 +1,48 @@
 #include "Estadisticas.h"
 #include "ListaPuntajes.h"
+#include "ModelosCombate.h"
 #include <cmath>
+
+const char* nombreColorEstadistica(int color) {
+    switch (color) {
+    case 0:
+        return "Cian";
+
+    case 1:
+        return "Magenta";
+
+    case 2:
+        return "Ambar";
+
+    default:
+        return "Desconocido";
+    }
+}
+
+const char* nombreTipoEnemigoEstadistica(int tipo) {
+    switch (static_cast<TipoEnemigo>(tipo)) {
+    case Dron:
+        return "Dron";
+
+    case Girador:
+        return "Girador";
+
+    case Divisor:
+        return "Divisor";
+
+    case Mini:
+        return "Mini";
+
+    case Tanque:
+        return "Tanque";
+
+    case Camaleon:
+        return "Camaleon";
+
+    default:
+        return "Desconocido";
+    }
+}
 
 static double calcularPrecisionRegistro(const RegistroPartida& registro) {
     int impactosTotales = registro.correctos + registro.erroneos;
@@ -39,7 +81,10 @@ static void agregarPuntajeHistograma(HistogramaPuntajes& histograma, int puntaje
         indice = 9;
     }
     else {
-        indice = static_cast<int>((static_cast<double>(puntaje) - histograma.minimo) / histograma.anchoIntervalo);
+        indice = static_cast<int>(
+            (static_cast<double>(puntaje) - histograma.minimo) /
+            histograma.anchoIntervalo
+            );
     }
 
     if (indice < 0) {
@@ -63,16 +108,27 @@ bool calcularEstadisticasJugador(const HistorialPartidas& historial, const std::
     estadisticas.medianaPuntaje = 0.0;
     estadisticas.desviacionEstandar = 0.0;
     estadisticas.precisionColorPromedio = 0.0;
+
     estadisticas.mejorColorDisponible = false;
     estadisticas.mejorColor = -1;
+
     estadisticas.tipoMasDanoDisponible = false;
     estadisticas.tipoMasDano = -1;
+
     inicializarHistograma(estadisticas.histograma);
 
     ListaPuntajes puntajes;
     inicializarListaPuntajes(puntajes);
 
+    long long correctosPorColor[3] = { 0, 0, 0 };
+    long long erroneosPorColor[3] = { 0, 0, 0 };
+
+    long long danoPorTipo[6] = { 0, 0, 0, 0, 0, 0 };
+
+    bool hayDetalle = false;
+
     const NodoRegistroPartida* actual = historial.cabeza;
+
     long long sumaPuntajes = 0;
     double sumaPrecisiones = 0.0;
     bool primerRegistro = true;
@@ -104,7 +160,28 @@ bool calcularEstadisticasJugador(const HistorialPartidas& historial, const std::
 
             sumaPuntajes += registro.puntaje;
             sumaPrecisiones += calcularPrecisionRegistro(registro);
+
             agregarPuntajeFinal(puntajes, registro.puntaje);
+
+            if (registro.detalleDisponible) {
+                hayDetalle = true;
+
+                correctosPorColor[0] += registro.correctosC;
+                erroneosPorColor[0] += registro.erroneosC;
+
+                correctosPorColor[1] += registro.correctosM;
+                erroneosPorColor[1] += registro.erroneosM;
+
+                correctosPorColor[2] += registro.correctosA;
+                erroneosPorColor[2] += registro.erroneosA;
+
+                danoPorTipo[0] += registro.danoDron;
+                danoPorTipo[1] += registro.danoGirador;
+                danoPorTipo[2] += registro.danoDivisor;
+                danoPorTipo[3] += registro.danoMini;
+                danoPorTipo[4] += registro.danoTanque;
+                danoPorTipo[5] += registro.danoCamaleon;
+            }
         }
 
         actual = actual->sig;
@@ -115,9 +192,16 @@ bool calcularEstadisticasJugador(const HistorialPartidas& historial, const std::
         return false;
     }
 
-    estadisticas.mediaPuntaje = static_cast<double>(sumaPuntajes) / static_cast<double>(estadisticas.partidasJugadas);
-    estadisticas.medianaPuntaje = calcularMedianaPuntajes(puntajes);
-    estadisticas.precisionColorPromedio = sumaPrecisiones / static_cast<double>(estadisticas.partidasJugadas);
+    estadisticas.mediaPuntaje =
+        static_cast<double>(sumaPuntajes) /
+        static_cast<double>(estadisticas.partidasJugadas);
+
+    estadisticas.medianaPuntaje =
+        calcularMedianaPuntajes(puntajes);
+
+    estadisticas.precisionColorPromedio =
+        sumaPrecisiones /
+        static_cast<double>(estadisticas.partidasJugadas);
 
     double sumaCuadrados = 0.0;
 
@@ -127,31 +211,91 @@ bool calcularEstadisticasJugador(const HistorialPartidas& historial, const std::
         const RegistroPartida& registro = actual->dato;
 
         if (registro.jugador == alias) {
-            double diferencia = static_cast<double>(registro.puntaje) - estadisticas.mediaPuntaje;
+            double diferencia =
+                static_cast<double>(registro.puntaje) -
+                estadisticas.mediaPuntaje;
+
             sumaCuadrados += diferencia * diferencia;
         }
 
         actual = actual->sig;
     }
 
-    estadisticas.desviacionEstandar = std::sqrt(sumaCuadrados / static_cast<double>(estadisticas.partidasJugadas));
+    estadisticas.desviacionEstandar =
+        std::sqrt(
+            sumaCuadrados /
+            static_cast<double>(estadisticas.partidasJugadas)
+        );
 
-    estadisticas.histograma.minimo = static_cast<double>(estadisticas.peorPuntaje);
-    estadisticas.histograma.maximo = static_cast<double>(estadisticas.mejorPuntaje);
-    estadisticas.histograma.total = estadisticas.partidasJugadas;
+    estadisticas.histograma.minimo =
+        static_cast<double>(estadisticas.peorPuntaje);
+
+    estadisticas.histograma.maximo =
+        static_cast<double>(estadisticas.mejorPuntaje);
+
+    estadisticas.histograma.total =
+        estadisticas.partidasJugadas;
 
     if (estadisticas.mejorPuntaje != estadisticas.peorPuntaje) {
-        estadisticas.histograma.anchoIntervalo = (estadisticas.histograma.maximo - estadisticas.histograma.minimo) / 10.0;
+        estadisticas.histograma.anchoIntervalo =
+            (estadisticas.histograma.maximo -
+                estadisticas.histograma.minimo) /
+            10.0;
     }
 
     actual = historial.cabeza;
 
     while (actual != nullptr) {
         if (actual->dato.jugador == alias) {
-            agregarPuntajeHistograma(estadisticas.histograma, actual->dato.puntaje);
+            agregarPuntajeHistograma(
+                estadisticas.histograma,
+                actual->dato.puntaje
+            );
         }
 
         actual = actual->sig;
+    }
+
+    if (hayDetalle) {
+        int mejorColor = -1;
+        double mejorPrecision = -1.0;
+
+        for (int color = 0; color < 3; color++) {
+            long long impactos =
+                correctosPorColor[color] +
+                erroneosPorColor[color];
+
+            if (impactos > 0) {
+                double precision =
+                    static_cast<double>(correctosPorColor[color]) /
+                    static_cast<double>(impactos);
+
+                if (mejorColor == -1 || precision > mejorPrecision) {
+                    mejorColor = color;
+                    mejorPrecision = precision;
+                }
+            }
+        }
+
+        if (mejorColor != -1) {
+            estadisticas.mejorColorDisponible = true;
+            estadisticas.mejorColor = mejorColor;
+        }
+
+        int tipoMasDano = -1;
+        long long mayorDano = 0;
+
+        for (int tipo = 0; tipo < 6; tipo++) {
+            if (danoPorTipo[tipo] > mayorDano) {
+                mayorDano = danoPorTipo[tipo];
+                tipoMasDano = tipo;
+            }
+        }
+
+        if (tipoMasDano != -1) {
+            estadisticas.tipoMasDanoDisponible = true;
+            estadisticas.tipoMasDano = tipoMasDano;
+        }
     }
 
     destruirListaPuntajes(puntajes);
@@ -180,15 +324,29 @@ void imprimirHistogramaASCII(const HistogramaPuntajes& histograma, std::ostream&
     }
 
     for (int i = 0; i < 10; i++) {
-        double inferior = histograma.minimo + histograma.anchoIntervalo * i;
-        double superior = inferior + histograma.anchoIntervalo;
+        double inferior =
+            histograma.minimo +
+            histograma.anchoIntervalo * i;
+
+        double superior =
+            inferior +
+            histograma.anchoIntervalo;
 
         if (i == 9) {
             superior = histograma.maximo;
-            salida << "[" << inferior << ", " << superior << "] ";
+
+            salida << "["
+                << inferior
+                << ", "
+                << superior
+                << "] ";
         }
         else {
-            salida << "[" << inferior << ", " << superior << ") ";
+            salida << "["
+                << inferior
+                << ", "
+                << superior
+                << ") ";
         }
 
         for (int j = 0; j < histograma.frecuencias[i]; j++) {
@@ -211,12 +369,17 @@ bool calcularResumenOleadaJugador(const BitacoraEventos& bitacora, const std::st
     }
 
     bool encontroEvento = false;
-    const NodoEvento* actual = bitacora.cabeza;
+
+    const NodoEvento* actual =
+        bitacora.cabeza;
 
     while (actual != nullptr) {
-        const Evento& evento = actual->dato;
+        const Evento& evento =
+            actual->dato;
 
-        if (evento.jugador == jugador && evento.oleada <= oleada) {
+        if (evento.jugador == jugador &&
+            evento.oleada <= oleada) {
+
             if (evento.tipoEvento == BAJA) {
                 resumen.puntajeAcumulado += evento.valor;
 
@@ -229,7 +392,9 @@ bool calcularResumenOleadaJugador(const BitacoraEventos& bitacora, const std::st
             if (evento.oleada == oleada) {
                 encontroEvento = true;
 
-                if (evento.tipoEvento == DANO_NUCLEO || evento.tipoEvento == CHOQUE_NAVE) {
+                if (evento.tipoEvento == DANO_NUCLEO ||
+                    evento.tipoEvento == CHOQUE_NAVE) {
+
                     resumen.danoRecibido += evento.valor;
                 }
             }
@@ -246,16 +411,34 @@ void imprimirLineaTiempoJugador(const BitacoraEventos& bitacora, const std::stri
         return;
     }
 
-    salida << "Jugador: " << jugador << '\n';
+    salida << "Jugador: "
+        << jugador
+        << '\n';
 
     for (int oleada = 1; oleada <= ultimaOleada; oleada++) {
         ResumenOleadaJugador resumen;
 
-        calcularResumenOleadaJugador(bitacora, jugador, oleada, resumen);
+        calcularResumenOleadaJugador(
+            bitacora,
+            jugador,
+            oleada,
+            resumen
+        );
 
-        salida << "Oleada " << resumen.oleada << '\n';
-        salida << "Bajas: " << resumen.bajas << '\n';
-        salida << "Dano recibido: " << resumen.danoRecibido << '\n';
-        salida << "Puntaje acumulado: " << resumen.puntajeAcumulado << '\n';
+        salida << "Oleada "
+            << resumen.oleada
+            << '\n';
+
+        salida << "Bajas: "
+            << resumen.bajas
+            << '\n';
+
+        salida << "Dano recibido: "
+            << resumen.danoRecibido
+            << '\n';
+
+        salida << "Puntaje acumulado: "
+            << resumen.puntajeAcumulado
+            << '\n';
     }
 }

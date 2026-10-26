@@ -4,8 +4,9 @@
 #include <string>
 
 #include "VistaAllegro.h"
-#include "ModelosJugador.h" //llama a struct "Jugador"
+#include "ModelosJugador.h"
 #include "Partida.h"
+#include "HistorialPartidas.h"
 
 enum PantallaInterfaz {
     PANTALLA_MENU,
@@ -39,49 +40,12 @@ struct RegistroGrafico {
 };
 
 void inicializarEstadoInterfaz(EstadoInterfaz& estado);
-
-OpcionMenuPrincipal ejecutarMenuPrincipal(
-    VistaAllegro& vista,
-    EstadoInterfaz& estado,
-    bool& cerrarAplicacion
-);
-
-bool ejecutarRegistroJugadores(
-    VistaAllegro& vista,
-    EstadoInterfaz& estado,
-    RegistroGrafico& registro,
-    bool& cerrarAplicacion
-);
-
-void mostrarAnuncioTurno(
-    VistaAllegro& vista,
-    EstadoInterfaz& estado,
-    const Jugador& jugador,
-    int numeroOleada,
-    bool& cerrarAplicacion
-);
-
-void mostrarResumenOleada(
-    VistaAllegro& vista,
-    EstadoInterfaz& estado,
-    const Partida& partida,
-    bool& cerrarAplicacion
-);
-
-void mostrarFinPartida(
-    VistaAllegro& vista,
-    EstadoInterfaz& estado,
-    const Partida& partida,
-    bool& cerrarAplicacion
-);
-
-void mostrarPantallaInformativa(
-    VistaAllegro& vista,
-    EstadoInterfaz& estado,
-    PantallaInterfaz pantalla,
-    const char* titulo,
-    const char* mensaje,
-    bool& cerrarAplicacion
-);
-
+OpcionMenuPrincipal ejecutarMenuPrincipal(VistaAllegro& vista, EstadoInterfaz& estado, bool& cerrarAplicacion);
+bool ejecutarRegistroJugadores(VistaAllegro& vista, EstadoInterfaz& estado, RegistroGrafico& registro, bool& cerrarAplicacion);
+void mostrarAnuncioTurno(VistaAllegro& vista, EstadoInterfaz& estado, const Jugador& jugador, int numeroOleada, bool& cerrarAplicacion);
+void mostrarResumenOleada(VistaAllegro& vista, EstadoInterfaz& estado, const Partida& partida, bool& cerrarAplicacion);
+void mostrarFinPartida(VistaAllegro& vista, EstadoInterfaz& estado, const Partida& partida, bool& cerrarAplicacion);
+void mostrarPantallaInformativa(VistaAllegro& vista, EstadoInterfaz& estado, PantallaInterfaz pantalla, const char* titulo, const char* mensaje, bool& cerrarAplicacion);
+void mostrarEstadisticasHistoricas(VistaAllegro& vista, EstadoInterfaz& estado, const HistorialPartidas& historial, bool& cerrarAplicacion);
+void mostrarRankingGrafico(VistaAllegro& vista, EstadoInterfaz& estado, const HistorialPartidas& historial, bool& cerrarAplicacion);
 #endif

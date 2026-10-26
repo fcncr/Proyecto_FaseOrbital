@@ -291,6 +291,21 @@ bool crearRegistroJugadorPartida(const Partida& partida, int indice, int idParti
     registro.bajasTanque = metricas.bajasTanque;
     registro.bajasCamaleon = metricas.bajasCamaleon;
 
+    registro.detalleDisponible = true;
+
+    registro.correctosC = metricas.impactosCorrectosC;
+    registro.erroneosC = metricas.impactosErroneosC;
+    registro.correctosM = metricas.impactosCorrectosM;
+    registro.erroneosM = metricas.impactosErroneosM;
+    registro.correctosA = metricas.impactosCorrectosA;
+    registro.erroneosA = metricas.impactosErroneosA;
+
+    registro.danoDron = metricas.danoDron;
+    registro.danoGirador = metricas.danoGirador;
+    registro.danoDivisor = metricas.danoDivisor;
+    registro.danoMini = metricas.danoMini;
+    registro.danoTanque = metricas.danoTanque;
+    registro.danoCamaleon = metricas.danoCamaleon;
     return true;
 }
 

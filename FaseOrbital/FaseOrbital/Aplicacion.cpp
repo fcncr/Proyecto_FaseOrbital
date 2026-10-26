@@ -100,6 +100,19 @@ static void mostrarEstadisticasJugador(const EstadisticasJugador& estadisticas) 
     cout << "Mediana: "<< estadisticas.medianaPuntaje << '\n';
     cout << "Desviacion estandar: "<< estadisticas.desviacionEstandar << '\n';
     cout << "Precision promedio: "<< estadisticas.precisionColorPromedio * 100.0<< "%" << '\n';
+    if (estadisticas.mejorColorDisponible) {
+            cout << "Mejor color: " << nombreColorEstadistica(estadisticas.mejorColor) << '\n';
+        }
+        else {
+            cout << "Mejor color: no disponible" << '\n';
+        }
+
+        if (estadisticas.tipoMasDanoDisponible) {
+            cout << "Tipo que mas dano causa: " << nombreTipoEnemigoEstadistica(estadisticas.tipoMasDano) << '\n';
+        }
+        else {
+            cout << "Tipo que mas dano causa: no disponible" << '\n';
+        }
     cout << "Histograma:" << '\n';
 
     imprimirHistogramaASCII(estadisticas.histograma,cout);
@@ -253,36 +266,58 @@ static void mostrarLineaTiempoPartida(const Partida& partida) {
     }
 }
 
-static bool guardarPartidaGrafica(Partida& partida, const string& rutaHistorial
-) {
-    HistorialPartidas historialExistente;
+static bool guardarPartidaGrafica(Partida& partida, const string& rutaHistorial, HistorialPartidas& historial) {
     HistorialPartidas nuevosResultados;
-    inicializarHistorial(historialExistente);
     inicializarHistorial(nuevosResultados);
 
-    if (existeArchivo(rutaHistorial)) {
-        if (!cargarHistorialCSV(rutaHistorial,historialExistente,cerr)) {
-            destruirHistorial(historialExistente);
-            destruirHistorial(nuevosResultados);
-            return false;
-        }
-    }
+    int idPartida = obtenerSiguienteIdPartida(historial);
 
-    int idPartida = obtenerSiguienteIdPartida(historialExistente);
     agregarResultadosPartidaHistorial(partida, idPartida, "grafico", nuevosResultados);
 
-    bool guardado = agregarHistorialCSV(rutaHistorial, nuevosResultados);
-    destruirHistorial(historialExistente);
+    if (!agregarHistorialCSV(rutaHistorial, nuevosResultados)) {
+        destruirHistorial(nuevosResultados);
+        return false;
+    }
+
+    bool detalleGuardado =
+        agregarDetalleHistorialCSV(rutaHistorial, nuevosResultados);
+
+    const NodoRegistroPartida* actual =
+        nuevosResultados.cabeza;
+
+    while (actual != nullptr) {
+        agregarRegistroFinal(historial, actual->dato);
+        actual = actual->sig;
+    }
+
     destruirHistorial(nuevosResultados);
 
-    return guardado;
+    return detalleGuardado;
 }
 
 int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config) {
+    HistorialPartidas historial;
+    inicializarHistorial(historial);
+
+    if (existeArchivo(config.rutaHistorial)) {
+        if (!cargarHistorialCSV(config.rutaHistorial, historial, cerr)) {
+            cerr << "No se pudo cargar el historial al iniciar la aplicacion." << '\n';
+            destruirHistorial(historial);
+            return 1;
+        }
+
+        if (!cargarDetalleHistorialCSV(config.rutaHistorial, historial, cerr)) {
+            cerr << "No se pudo cargar el detalle historico." << '\n';
+            destruirHistorial(historial);
+            return 1;
+        }
+    }
+
     VistaAllegro vista;
 
-    if (!inicializarVistaAllegro(vista,800,600)) {
-        cerr<< "No se pudo inicializar Allegro." << '\n';
+    if (!inicializarVistaAllegro(vista, 800, 600)) {
+        cerr << "No se pudo inicializar Allegro." << '\n';
+        destruirHistorial(historial);
         return 1;
     }
 
@@ -293,24 +328,25 @@ int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config) {
     bool resultado = true;
 
     while (!cerrarAplicacion) {
-        OpcionMenuPrincipal opcion =ejecutarMenuPrincipal(vista,estado,cerrarAplicacion);
-        if (cerrarAplicacion ||opcion == MENU_SALIR) {
+        OpcionMenuPrincipal opcion = ejecutarMenuPrincipal(vista, estado, cerrarAplicacion);
+
+        if (cerrarAplicacion || opcion == MENU_SALIR) {
             break;
         }
 
-        if (opcion ==MENU_ESTADISTICAS) {
-            mostrarPantallaInformativa(vista, estado, PANTALLA_ESTADISTICAS, "ESTADISTICAS", "La pantalla historica se integra en F5.5.", cerrarAplicacion);
+        if (opcion == MENU_ESTADISTICAS) {
+            mostrarEstadisticasHistoricas(vista, estado, historial, cerrarAplicacion);
             continue;
         }
 
         if (opcion == MENU_RANKING) {
-            mostrarPantallaInformativa(vista,estado, PANTALLA_RANKING, "RANKING TOP 10", "La pantalla de ranking se integra en F5.5.", cerrarAplicacion);
+            mostrarRankingGrafico(vista, estado, historial, cerrarAplicacion);
             continue;
         }
 
         RegistroGrafico registro;
 
-        bool registroCompletado = ejecutarRegistroJugadores(vista,estado, registro, cerrarAplicacion);
+        bool registroCompletado = ejecutarRegistroJugadores(vista, estado, registro, cerrarAplicacion);
 
         if (cerrarAplicacion) {
             break;
@@ -321,11 +357,11 @@ int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config) {
         }
 
         Partida partida;
-
-        inicializarPartida(partida,config.semilla,config.oleadas);
+        inicializarPartida(partida, config.semilla, config.oleadas);
 
         if (!registrarJugadores(partida, registro.aliasJugadores, registro.cantidadJugadores)) {
-            cerr << "No se pudieron registrar " << "los jugadores graficos."<< '\n';
+            cerr << "No se pudieron registrar los jugadores graficos." << '\n';
+
             destruirPartida(partida);
             resultado = false;
             break;
@@ -334,25 +370,26 @@ int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config) {
         bool abandonarPartida = false;
 
         while (!partida.finalizada && !cerrarAplicacion && !abandonarPartida) {
-            if (!ejecutarRondaGrafica(partida,vista,estado,cerrarAplicacion,abandonarPartida)) {
+            if (!ejecutarRondaGrafica(partida, vista, estado, cerrarAplicacion, abandonarPartida)) {
                 resultado = false;
                 break;
             }
         }
 
-        if (!resultado) {destruirPartida(partida);
+        if (!resultado) {
+            destruirPartida(partida);
             break;
         }
 
-        if (!cerrarAplicacion &&partida.finalizada) {
-
+        if (!cerrarAplicacion && partida.finalizada) {
             actualizarMetricasFinalesPartida(partida);
-            mostrarFinPartida(vista,estado,partida,cerrarAplicacion);
+            mostrarFinPartida(vista, estado, partida, cerrarAplicacion);
 
             if (!cerrarAplicacion) {
-                if (!guardarPartidaGrafica(partida,config.rutaHistorial)) {
-                    cerr<< "No se pudo guardar " << "la partida grafica." << '\n';
+                if (!guardarPartidaGrafica(partida, config.rutaHistorial, historial)) {
+                    cerr << "No se pudo guardar la partida grafica." << '\n';
                 }
+
                 mostrarLineaTiempoPartida(partida);
             }
         }
@@ -361,6 +398,8 @@ int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config) {
     }
 
     destruirVistaAllegro(vista);
+    destruirHistorial(historial);
+
     return resultado ? 0 : 1;
 }
 
@@ -375,7 +414,7 @@ int ejecutarAplicacionLotes(const ConfiguracionPrograma& config) {
     inicializarHistorial(historialExistente);
     inicializarHistorial(nuevosResultados);
 
-    if (!registrarJugadores(partida,config.jugadores, config.cantidadJugadores)) {
+    if (!registrarJugadores(partida, config.jugadores, config.cantidadJugadores)) {
         cerr << "No se pudieron registrar los jugadores." << '\n';
 
         destruirPartida(partida);
@@ -388,7 +427,7 @@ int ejecutarAplicacionLotes(const ConfiguracionPrograma& config) {
 
     if (config.tieneScript) {
         if (!cargarScriptAcciones(script, config.rutaScript)) {
-            cerr << "No se pudo cargar el script: "<< config.rutaScript << '\n';
+            cerr << "No se pudo cargar el script: " << config.rutaScript << '\n';
 
             destruirPartida(partida);
             destruirScriptAcciones(script);
@@ -402,6 +441,17 @@ int ejecutarAplicacionLotes(const ConfiguracionPrograma& config) {
     if (existeArchivo(config.rutaHistorial)) {
         if (!cargarHistorialCSV(config.rutaHistorial, historialExistente, cerr)) {
             cerr << "No se pudo cargar el historial existente." << '\n';
+
+            destruirPartida(partida);
+            destruirScriptAcciones(script);
+            destruirHistorial(historialExistente);
+            destruirHistorial(nuevosResultados);
+
+            return 1;
+        }
+
+        if (!cargarDetalleHistorialCSV(config.rutaHistorial, historialExistente, cerr)) {
+            cerr << "No se pudo cargar el detalle historico." << '\n';
 
             destruirPartida(partida);
             destruirScriptAcciones(script);
@@ -429,14 +479,27 @@ int ejecutarAplicacionLotes(const ConfiguracionPrograma& config) {
         }
     }
 
-    agregarResultadosPartidaHistorial(partida,idPartida,"lotes", nuevosResultados);
+    agregarResultadosPartidaHistorial(partida, idPartida, "lotes", nuevosResultados);
 
     if (!agregarHistorialCSV(config.rutaHistorial, nuevosResultados)) {
-        cerr << "No se pudo guardar el historial en: "<< config.rutaHistorial << '\n';
+        cerr << "No se pudo guardar el historial en: " << config.rutaHistorial << '\n';
+
         destruirPartida(partida);
         destruirScriptAcciones(script);
         destruirHistorial(historialExistente);
         destruirHistorial(nuevosResultados);
+
+        return 1;
+    }
+
+    if (!agregarDetalleHistorialCSV(config.rutaHistorial, nuevosResultados)) {
+        cerr << "No se pudo guardar el detalle historico." << '\n';
+
+        destruirPartida(partida);
+        destruirScriptAcciones(script);
+        destruirHistorial(historialExistente);
+        destruirHistorial(nuevosResultados);
+
         return 1;
     }
 
@@ -446,6 +509,7 @@ int ejecutarAplicacionLotes(const ConfiguracionPrograma& config) {
     destruirScriptAcciones(script);
     destruirHistorial(historialExistente);
     destruirHistorial(nuevosResultados);
+
     return 0;
 }
 
@@ -457,6 +521,12 @@ int ejecutarAplicacionEstadisticas(const string& archivo) {
     inicializarRanking(ranking);
 
     if (!cargarHistorialCSV(archivo, historial, cerr)) {
+        destruirRanking(ranking);
+        destruirHistorial(historial);
+        return 1;
+    }
+
+    if (!cargarDetalleHistorialCSV(archivo, historial, cerr)) {
         destruirRanking(ranking);
         destruirHistorial(historial);
         return 1;

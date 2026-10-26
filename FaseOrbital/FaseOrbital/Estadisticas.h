@@ -46,5 +46,6 @@ bool calcularEstadisticasJugador(const HistorialPartidas& historial, const std::
 void imprimirHistogramaASCII(const HistogramaPuntajes& histograma, std::ostream& salida);
 bool calcularResumenOleadaJugador(const BitacoraEventos& bitacora, const std::string& jugador, int oleada, ResumenOleadaJugador& resumen);
 void imprimirLineaTiempoJugador(const BitacoraEventos& bitacora, const std::string& jugador, int ultimaOleada, std::ostream& salida);
-
+const char* nombreColorEstadistica(int color);
+const char* nombreTipoEnemigoEstadistica(int tipo);
 #endif

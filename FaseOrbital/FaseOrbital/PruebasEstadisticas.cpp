@@ -4,9 +4,9 @@
 #include "Ranking.h"
 #include "Motor.h"
 #include "Partida.h"
+
 #include <cmath>
 #include <sstream>
-
 
 static bool listaOrdenadaAscendente(const ListaPuntajes& lista) {
     const NodoPuntaje* actual = lista.cabeza;
@@ -175,8 +175,16 @@ bool pruebaP12() {
     return resultado;
 }
 
-static RegistroPartida crearRegistroEstadisticas(int idPartida, const std::string& jugador, int posicion, int puntaje, int correctos, int erroneos) {
+static RegistroPartida crearRegistroEstadisticas(
+    int idPartida,
+    const std::string& jugador,
+    int posicion,
+    int puntaje,
+    int correctos,
+    int erroneos
+) {
     RegistroPartida registro;
+
     registro.idPartida = idPartida;
     registro.semilla = 42u;
     registro.modo = "lotes";
@@ -192,12 +200,30 @@ static RegistroPartida crearRegistroEstadisticas(int idPartida, const std::strin
     registro.pulsos = 0;
     registro.danoTotal = 0;
     registro.ticks = 100;
+
     registro.bajasDron = 0;
     registro.bajasGirador = 0;
     registro.bajasDivisor = 0;
     registro.bajasMini = 0;
     registro.bajasTanque = 0;
     registro.bajasCamaleon = 0;
+
+    registro.detalleDisponible = false;
+
+    registro.correctosC = 0;
+    registro.erroneosC = 0;
+    registro.correctosM = 0;
+    registro.erroneosM = 0;
+    registro.correctosA = 0;
+    registro.erroneosA = 0;
+
+    registro.danoDron = 0;
+    registro.danoGirador = 0;
+    registro.danoDivisor = 0;
+    registro.danoMini = 0;
+    registro.danoTanque = 0;
+    registro.danoCamaleon = 0;
+
     return registro;
 }
 
@@ -301,6 +327,86 @@ bool pruebaEstadisticasHistoricas() {
         resultado = false;
     }
 
+    HistorialPartidas historialDetalle;
+    inicializarHistorial(historialDetalle);
+
+    RegistroPartida detalle1 = crearRegistroEstadisticas(
+        20,
+        "DETALLE",
+        1,
+        700,
+        22,
+        8
+    );
+
+    detalle1.detalleDisponible = true;
+
+    detalle1.correctosC = 8;
+    detalle1.erroneosC = 2;
+
+    detalle1.correctosM = 5;
+    detalle1.erroneosM = 5;
+
+    detalle1.correctosA = 9;
+    detalle1.erroneosA = 1;
+
+    detalle1.danoDron = 10;
+    detalle1.danoTanque = 22;
+
+    RegistroPartida detalle2 = crearRegistroEstadisticas(
+        21,
+        "DETALLE",
+        2,
+        500,
+        9,
+        3
+    );
+
+    detalle2.detalleDisponible = true;
+
+    detalle2.correctosC = 2;
+    detalle2.erroneosC = 0;
+
+    detalle2.correctosM = 1;
+    detalle2.erroneosM = 1;
+
+    detalle2.correctosA = 5;
+    detalle2.erroneosA = 0;
+
+    detalle2.danoDron = 10;
+    detalle2.danoTanque = 12;
+
+    agregarRegistroFinal(historialDetalle, detalle1);
+    agregarRegistroFinal(historialDetalle, detalle2);
+
+    EstadisticasJugador estadisticasDetalle;
+
+    if (!calcularEstadisticasJugador(
+        historialDetalle,
+        "DETALLE",
+        estadisticasDetalle
+    )) {
+        resultado = false;
+    }
+
+    if (!estadisticasDetalle.mejorColorDisponible) {
+        resultado = false;
+    }
+
+    if (estadisticasDetalle.mejorColor != 2) {
+        resultado = false;
+    }
+
+    if (!estadisticasDetalle.tipoMasDanoDisponible) {
+        resultado = false;
+    }
+
+    if (estadisticasDetalle.tipoMasDano != static_cast<int>(Tanque)) {
+        resultado = false;
+    }
+
+    destruirHistorial(historialDetalle);
+
     HistorialPartidas repetidos;
     inicializarHistorial(repetidos);
 
@@ -314,7 +420,10 @@ bool pruebaEstadisticasHistoricas() {
         resultado = false;
     }
 
-    if (!casiIguales(iguales.mediaPuntaje, 500.0) || !casiIguales(iguales.medianaPuntaje, 500.0) || !casiIguales(iguales.desviacionEstandar, 0.0)) {
+    if (!casiIguales(iguales.mediaPuntaje, 500.0) ||
+        !casiIguales(iguales.medianaPuntaje, 500.0) ||
+        !casiIguales(iguales.desviacionEstandar, 0.0)) {
+
         resultado = false;
     }
 
@@ -359,7 +468,10 @@ bool pruebaRanking() {
 
     insertarOrdenadoRanking(ranking, luis);
 
-    if (ranking.cabeza == nullptr || ranking.cabeza->dato.alias != "LUIS" || ranking.tam != 1) {
+    if (ranking.cabeza == nullptr ||
+        ranking.cabeza->dato.alias != "LUIS" ||
+        ranking.tam != 1) {
+
         resultado = false;
     }
 
@@ -403,13 +515,19 @@ bool pruebaRanking() {
 
     posicion1 = obtenerPosicionRanking(ranking, 1);
 
-    if (posicion1 == nullptr || posicion1->alias != "MARIO" || posicion1->mejorPuntaje != 800) {
+    if (posicion1 == nullptr ||
+        posicion1->alias != "MARIO" ||
+        posicion1->mejorPuntaje != 800) {
+
         resultado = false;
     }
 
-    const RegistroRanking* marioBuscado = buscarJugadorRanking(ranking, "MARIO");
+    const RegistroRanking* marioBuscado =
+        buscarJugadorRanking(ranking, "MARIO");
 
-    if (marioBuscado == nullptr || marioBuscado->mejorPuntaje != 800) {
+    if (marioBuscado == nullptr ||
+        marioBuscado->mejorPuntaje != 800) {
+
         resultado = false;
     }
 
@@ -598,10 +716,17 @@ bool pruebaIntegracionEstadisticasMotor() {
     pendiente.color = 0;
     pendiente.angulo = 0;
     pendiente.sentido = 0;
+
     encolarSpawn(cola, pendiente);
 
     Motor motor;
-    inicializarMotor(motor, jugador, 1, cola, &partida.bitacora);
+    inicializarMotor(
+        motor,
+        jugador,
+        1,
+        cola,
+        &partida.bitacora
+    );
 
     AccionMotor sinAccion;
     sinAccion.cambiarAngulo = false;
@@ -623,10 +748,24 @@ bool pruebaIntegracionEstadisticasMotor() {
     enemigoIncorrecto.radio = 6;
     enemigoIncorrecto.ticksColor = 0;
 
-    insertarFinal(motor.enemigos, enemigoIncorrecto);
+    insertarFinal(
+        motor.enemigos,
+        enemigoIncorrecto
+    );
 
-    Bala balaIncorrecta{ 100.0, 0.0, 0.0, 0.0, 0, 0 };
-    insertarInicio(motor.balas, balaIncorrecta);
+    Bala balaIncorrecta{
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0,
+        0
+    };
+
+    insertarInicio(
+        motor.balas,
+        balaIncorrecta
+    );
 
     moverBalasYResolverImpactos(motor);
 
@@ -644,10 +783,24 @@ bool pruebaIntegracionEstadisticasMotor() {
     enemigoCorrecto.radio = 6;
     enemigoCorrecto.ticksColor = 0;
 
-    insertarFinal(motor.enemigos, enemigoCorrecto);
+    insertarFinal(
+        motor.enemigos,
+        enemigoCorrecto
+    );
 
-    Bala balaCorrecta{ 100.0, 0.0, 0.0, 0.0, 0, 0 };
-    insertarInicio(motor.balas, balaCorrecta);
+    Bala balaCorrecta{
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0,
+        0
+    };
+
+    insertarInicio(
+        motor.balas,
+        balaCorrecta
+    );
 
     moverBalasYResolverImpactos(motor);
 
@@ -660,7 +813,10 @@ bool pruebaIntegracionEstadisticasMotor() {
     usarPulso.colorNuevo = motor.nave.color;
     usarPulso.solicitarPulso = true;
 
-    aplicarAccion(motor, usarPulso);
+    aplicarAccion(
+        motor,
+        usarPulso
+    );
 
     destruirListaEnemigos(motor.enemigos);
     inicializarListaEnemigos(motor.enemigos);
@@ -678,7 +834,10 @@ bool pruebaIntegracionEstadisticasMotor() {
     enemigoNucleo.radio = 6;
     enemigoNucleo.ticksColor = 0;
 
-    insertarFinal(motor.enemigos, enemigoNucleo);
+    insertarFinal(
+        motor.enemigos,
+        enemigoNucleo
+    );
 
     resolverChoquesEnemigos(motor);
     verificarFinMotor(motor);
@@ -690,14 +849,37 @@ bool pruebaIntegracionEstadisticasMotor() {
 
     bool resultado = true;
 
-    if (jugador->metricas.disparos != 1) resultado = false;
-    if (jugador->metricas.impactosCorrectos != 1) resultado = false;
-    if (jugador->metricas.impactosErroneos != 1) resultado = false;
-    if (jugador->metricas.bajasDron != 1) resultado = false;
-    if (jugador->metricas.pulsosUtilizados != 1) resultado = false;
-    if (jugador->metricas.danoTotal != 5) resultado = false;
-    if (jugador->metricas.ticksSobrevividos != 1) resultado = false;
-    if (jugador->puntaje != 100) resultado = false;
+    if (jugador->metricas.disparos != 1) {
+        resultado = false;
+    }
+
+    if (jugador->metricas.impactosCorrectos != 1) {
+        resultado = false;
+    }
+
+    if (jugador->metricas.impactosErroneos != 1) {
+        resultado = false;
+    }
+
+    if (jugador->metricas.bajasDron != 1) {
+        resultado = false;
+    }
+
+    if (jugador->metricas.pulsosUtilizados != 1) {
+        resultado = false;
+    }
+
+    if (jugador->metricas.danoTotal != 5) {
+        resultado = false;
+    }
+
+    if (jugador->metricas.ticksSobrevividos != 1) {
+        resultado = false;
+    }
+
+    if (jugador->puntaje != 100) {
+        resultado = false;
+    }
 
     if (jugador->metricas.precisionColor != 0.5) {
         resultado = false;
@@ -710,7 +892,12 @@ bool pruebaIntegracionEstadisticasMotor() {
     HistorialPartidas historial;
     inicializarHistorial(historial);
 
-    agregarResultadosPartidaHistorial(partida, 77, "lotes", historial);
+    agregarResultadosPartidaHistorial(
+        partida,
+        77,
+        "lotes",
+        historial
+    );
 
     if (contarRegistros(historial) != 1) {
         resultado = false;
@@ -718,8 +905,32 @@ bool pruebaIntegracionEstadisticasMotor() {
 
     destruirPartida(partida);
 
-    if (historial.cabeza == nullptr || historial.cabeza->dato.jugador != "ANA" || historial.cabeza->dato.puntaje != 100) {
+    if (historial.cabeza == nullptr ||
+        historial.cabeza->dato.jugador != "ANA" ||
+        historial.cabeza->dato.puntaje != 100) {
+
         resultado = false;
+    }
+
+    if (historial.cabeza != nullptr) {
+        const RegistroPartida& registro =
+            historial.cabeza->dato;
+
+        if (!registro.detalleDisponible) {
+            resultado = false;
+        }
+
+        if (registro.correctosC != 1) {
+            resultado = false;
+        }
+
+        if (registro.erroneosC != 1) {
+            resultado = false;
+        }
+
+        if (registro.danoDron != 5) {
+            resultado = false;
+        }
     }
 
     destruirHistorial(historial);

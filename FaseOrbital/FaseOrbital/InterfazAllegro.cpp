@@ -2,6 +2,9 @@
 
 #include <allegro5/allegro_primitives.h>
 
+#include "Estadisticas.h"
+#include "Ranking.h"
+
 static bool aliasEmpiezaConBOT(const std::string& alias) {
     return alias.size() >= 3 &&
         alias[0] == 'B' &&
@@ -296,6 +299,201 @@ static void dibujarAnuncioTurno(
 
     al_flip_display();
 }
+
+static void dibujarHistogramaEstadisticas(const VistaAllegro& vista, const HistogramaPuntajes& histograma) {
+    float inicioX = 500.0f;
+    float inicioY = 190.0f;
+    float anchoMaximo = 150.0f;
+    float altoBarra = 16.0f;
+    float separacion = 27.0f;
+
+    al_draw_text(vista.fuente, al_map_rgb(255, 210, 30), 560.0f, 150.0f, ALLEGRO_ALIGN_CENTER, "HISTOGRAMA DE PUNTAJES");
+
+    if (histograma.total <= 0) {
+        al_draw_text(vista.fuente, al_map_rgb(180, 190, 210), 560.0f, 220.0f, ALLEGRO_ALIGN_CENTER, "Sin puntajes registrados");
+        return;
+    }
+
+    if (histograma.minimo == histograma.maximo) {
+        int frecuencia = histograma.frecuencias[0];
+
+        al_draw_textf(vista.fuente, al_map_rgb(220, 220, 220), inicioX - 15.0f, 220.0f, ALLEGRO_ALIGN_RIGHT, "%.0f pts", histograma.minimo);
+
+        al_draw_rectangle(inicioX, 220.0f, inicioX + anchoMaximo, 220.0f + altoBarra, al_map_rgb(80, 100, 140), 1.0f);
+
+        if (frecuencia > 0) {
+            al_draw_filled_rectangle(inicioX, 220.0f, inicioX + anchoMaximo, 220.0f + altoBarra, al_map_rgb(0, 190, 230));
+        }
+
+        al_draw_textf(vista.fuente, al_map_rgb(255, 255, 255), inicioX + anchoMaximo + 10.0f, 220.0f, 0, "%d", frecuencia);
+
+        return;
+    }
+
+    int frecuenciaMaxima = 0;
+
+    for (int i = 0; i < 10; i++) {
+        if (histograma.frecuencias[i] > frecuenciaMaxima) {
+            frecuenciaMaxima = histograma.frecuencias[i];
+        }
+    }
+
+    for (int i = 0; i < 10; i++) {
+        float y = inicioY + separacion * static_cast<float>(i);
+
+        double inferior = histograma.minimo + histograma.anchoIntervalo * static_cast<double>(i);
+        double superior = inferior + histograma.anchoIntervalo;
+
+        if (i == 9) {
+            superior = histograma.maximo;
+        }
+
+        float ancho = 0.0f;
+
+        if (frecuenciaMaxima > 0) {
+            ancho = anchoMaximo * static_cast<float>(histograma.frecuencias[i]) / static_cast<float>(frecuenciaMaxima);
+        }
+
+        al_draw_textf(vista.fuente, al_map_rgb(180, 190, 210), inicioX - 15.0f, y, ALLEGRO_ALIGN_RIGHT, "%.0f - %.0f", inferior, superior);
+
+        al_draw_rectangle(inicioX, y, inicioX + anchoMaximo, y + altoBarra, al_map_rgb(80, 100, 140), 1.0f);
+
+        if (ancho > 0.0f) {
+            al_draw_filled_rectangle(inicioX, y, inicioX + ancho, y + altoBarra, al_map_rgb(0, 190, 230));
+        }
+
+        al_draw_textf(vista.fuente, al_map_rgb(255, 255, 255), inicioX + anchoMaximo + 10.0f, y, 0, "%d", histograma.frecuencias[i]);
+    }
+}
+
+static void dibujarRankingGrafico(const VistaAllegro& vista, const Ranking& ranking) {
+    dibujarFondoInterfaz(vista);
+    dibujarTitulo(vista, "RANKING TOP 10");
+
+    al_draw_text(vista.fuente, al_map_rgb(150, 160, 180), 130.0f, 155.0f, 0, "POS");
+    al_draw_text(vista.fuente, al_map_rgb(150, 160, 180), 190.0f, 155.0f, 0, "JUGADOR");
+    al_draw_text(vista.fuente, al_map_rgb(150, 160, 180), 430.0f, 155.0f, 0, "PUNTAJE");
+    al_draw_text(vista.fuente, al_map_rgb(150, 160, 180), 570.0f, 155.0f, 0, "PRECISION");
+
+    const NodoRanking* actual = ranking.cabeza;
+    int posicion = 1;
+    float y = 195.0f;
+
+    while (actual != nullptr && posicion <= 10) {
+        ALLEGRO_COLOR color = al_map_rgb(220, 220, 220);
+
+        if (posicion == 1) {
+            color = al_map_rgb(255, 210, 30);
+        }
+
+        al_draw_textf(vista.fuente, color, 140.0f, y, ALLEGRO_ALIGN_CENTER, "%d", posicion);
+        al_draw_text(vista.fuente, color, 190.0f, y, 0, actual->dato.alias.c_str());
+        al_draw_textf(vista.fuente, color, 430.0f, y, 0, "%d", actual->dato.mejorPuntaje);
+        al_draw_textf(vista.fuente, color, 570.0f, y, 0, "%.2f%%", actual->dato.precisionColor * 100.0);
+
+        actual = actual->sig;
+        posicion++;
+        y += 32.0f;
+    }
+
+    al_draw_text(vista.fuente, al_map_rgb(160, 170, 190), static_cast<float>(vista.ancho) / 2.0f, 510.0f, ALLEGRO_ALIGN_CENTER, "ESC o ENTER: volver al menu");
+
+    al_flip_display();
+}
+
+static void dibujarRankingVacio(const VistaAllegro& vista) {
+    dibujarFondoInterfaz(vista);
+    dibujarTitulo(vista, "RANKING TOP 10");
+
+    al_draw_text(vista.fuente, al_map_rgb(220, 220, 220), static_cast<float>(vista.ancho) / 2.0f, 270.0f, ALLEGRO_ALIGN_CENTER, "No hay partidas registradas.");
+
+    al_draw_text(vista.fuente, al_map_rgb(160, 170, 190), static_cast<float>(vista.ancho) / 2.0f, 330.0f, ALLEGRO_ALIGN_CENTER, "ENTER o ESC para volver");
+
+    al_flip_display();
+}
+
+static void dibujarEstadisticasJugadorGrafico(const VistaAllegro& vista, const EstadisticasJugador& estadisticas, int posicion, int totalJugadores) {
+    dibujarFondoInterfaz(vista);
+    dibujarTitulo(vista, "ESTADISTICAS HISTORICAS");
+
+    ALLEGRO_COLOR texto = al_map_rgb(220, 220, 220);
+    ALLEGRO_COLOR destacado = al_map_rgb(255, 210, 30);
+
+    al_draw_textf(vista.fuente, destacado, 130.0f, 145.0f, 0, "Jugador: %s", estadisticas.alias.c_str());
+
+    al_draw_textf(vista.fuente, texto, 130.0f, 180.0f, 0, "Partidas: %d", estadisticas.partidasJugadas);
+    al_draw_textf(vista.fuente, texto, 130.0f, 210.0f, 0, "Victorias: %d", estadisticas.victorias);
+    al_draw_textf(vista.fuente, texto, 130.0f, 240.0f, 0, "Mejor puntaje: %d", estadisticas.mejorPuntaje);
+    al_draw_textf(vista.fuente, texto, 130.0f, 270.0f, 0, "Peor puntaje: %d", estadisticas.peorPuntaje);
+    al_draw_textf(vista.fuente, texto, 130.0f, 300.0f, 0, "Media: %.2f", estadisticas.mediaPuntaje);
+    al_draw_textf(vista.fuente, texto, 130.0f, 330.0f, 0, "Mediana: %.2f", estadisticas.medianaPuntaje);
+    al_draw_textf(vista.fuente, texto, 130.0f, 360.0f, 0, "Desviacion: %.2f", estadisticas.desviacionEstandar);
+    al_draw_textf(vista.fuente, texto, 130.0f, 390.0f, 0, "Precision: %.2f%%", estadisticas.precisionColorPromedio * 100.0);
+
+    if (estadisticas.mejorColorDisponible) {
+        al_draw_textf(
+            vista.fuente,
+            texto,
+            130.0f,
+            420.0f,
+            0,
+            "Mejor color: %s",
+            nombreColorEstadistica(estadisticas.mejorColor)
+        );
+    }
+    else {
+        al_draw_text(
+            vista.fuente,
+            al_map_rgb(150, 160, 180),
+            130.0f,
+            420.0f,
+            0,
+            "Mejor color: no disponible"
+        );
+    }
+
+    if (estadisticas.tipoMasDanoDisponible) {
+        al_draw_textf(
+            vista.fuente,
+            texto,
+            130.0f,
+            450.0f,
+            0,
+            "Tipo mas dano: %s",
+            nombreTipoEnemigoEstadistica(estadisticas.tipoMasDano)
+        );
+    }
+    else {
+        al_draw_text(
+            vista.fuente,
+            al_map_rgb(150, 160, 180),
+            130.0f,
+            450.0f,
+            0,
+            "Tipo mas dano: no disponible"
+        );
+    }
+
+    dibujarHistogramaEstadisticas(vista, estadisticas.histograma);
+
+    al_draw_textf(vista.fuente, al_map_rgb(160, 170, 190), static_cast<float>(vista.ancho) / 2.0f, 515.0f, ALLEGRO_ALIGN_CENTER, "Jugador %d de %d", posicion, totalJugadores);
+
+    al_draw_text(vista.fuente, al_map_rgb(160, 170, 190), static_cast<float>(vista.ancho) / 2.0f, 545.0f, ALLEGRO_ALIGN_CENTER, "IZQUIERDA / DERECHA: cambiar jugador | ESC o ENTER: volver");
+
+    al_flip_display();
+}
+
+static void dibujarEstadisticasVacias(const VistaAllegro& vista) {
+    dibujarFondoInterfaz(vista);
+    dibujarTitulo(vista, "ESTADISTICAS HISTORICAS");
+
+    al_draw_text(vista.fuente, al_map_rgb(220, 220, 220), static_cast<float>(vista.ancho) / 2.0f, 270.0f, ALLEGRO_ALIGN_CENTER, "No hay partidas registradas.");
+
+    al_draw_text(vista.fuente, al_map_rgb(160, 170, 190), static_cast<float>(vista.ancho) / 2.0f, 330.0f, ALLEGRO_ALIGN_CENTER, "ENTER o ESC para volver");
+
+    al_flip_display();
+}
+
 
 void inicializarEstadoInterfaz(
     EstadoInterfaz& estado
@@ -905,4 +1103,122 @@ void mostrarFinPartida(VistaAllegro& vista, EstadoInterfaz& estado, const Partid
             return;
         }
     }
+}
+
+void mostrarEstadisticasHistoricas(VistaAllegro& vista, EstadoInterfaz& estado, const HistorialPartidas& historial, bool& cerrarAplicacion) {
+    estado.pantallaActual = PANTALLA_ESTADISTICAS;
+
+    Ranking ranking;
+    inicializarRanking(ranking);
+    construirRankingDesdeHistorial(historial, ranking);
+
+    al_flush_event_queue(vista.colaEventos);
+
+    if (ranking.tam == 0) {
+        dibujarEstadisticasVacias(vista);
+
+        while (!cerrarAplicacion) {
+            ALLEGRO_EVENT evento;
+            al_wait_for_event(vista.colaEventos, &evento);
+
+            if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+                cerrarAplicacion = true;
+                break;
+            }
+
+            if (evento.type == ALLEGRO_EVENT_KEY_DOWN) {
+                if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER || evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE) {
+                    break;
+                }
+            }
+        }
+
+        destruirRanking(ranking);
+        return;
+    }
+
+    int posicion = 1;
+
+    while (!cerrarAplicacion) {
+        const RegistroRanking* registro = obtenerPosicionRanking(ranking, posicion);
+
+        if (registro == nullptr) {
+            break;
+        }
+
+        EstadisticasJugador estadisticas;
+
+        if (!calcularEstadisticasJugador(historial, registro->alias, estadisticas)) {
+            break;
+        }
+
+        dibujarEstadisticasJugadorGrafico(vista, estadisticas, posicion, ranking.tam);
+
+        ALLEGRO_EVENT evento;
+        al_wait_for_event(vista.colaEventos, &evento);
+
+        if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+            cerrarAplicacion = true;
+            break;
+        }
+
+        if (evento.type != ALLEGRO_EVENT_KEY_DOWN) {
+            continue;
+        }
+
+        if (evento.keyboard.keycode == ALLEGRO_KEY_RIGHT) {
+            posicion++;
+
+            if (posicion > ranking.tam) {
+                posicion = 1;
+            }
+        }
+        else if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT) {
+            posicion--;
+
+            if (posicion < 1) {
+                posicion = ranking.tam;
+            }
+        }
+        else if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER || evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE) {
+            break;
+        }
+    }
+
+    destruirRanking(ranking);
+}
+
+void mostrarRankingGrafico(VistaAllegro& vista, EstadoInterfaz& estado, const HistorialPartidas& historial, bool& cerrarAplicacion) {
+    estado.pantallaActual = PANTALLA_RANKING;
+
+    Ranking ranking;
+    inicializarRanking(ranking);
+    construirRankingDesdeHistorial(historial, ranking);
+
+    al_flush_event_queue(vista.colaEventos);
+
+    if (ranking.tam == 0) {
+        dibujarRankingVacio(vista);
+    }
+    else {
+        dibujarRankingGrafico(vista, ranking);
+    }
+
+    while (!cerrarAplicacion) {
+        ALLEGRO_EVENT evento;
+        al_wait_for_event(vista.colaEventos, &evento);
+
+        if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
+            cerrarAplicacion = true;
+            break;
+        }
+
+        if (evento.type == ALLEGRO_EVENT_KEY_DOWN) {
+            if (evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE || evento.keyboard.keycode == ALLEGRO_KEY_ENTER) {
+                break;
+            }
+        }
+    }
+
+    destruirRanking(ranking);
 }
