@@ -5,14 +5,30 @@
 #include <ostream>
 #include "HistorialPartidas.h"
 
+using namespace std;
+
+//devuelve el encabezado que debe tener el historial principal
 const char* encabezadoHistorialCSV();
 
-bool agregarRegistroCSV(const std::string& ruta, const RegistroPartida& registro);
-bool agregarHistorialCSV(const std::string& ruta, const HistorialPartidas& historial);
-bool cargarHistorialCSV(const std::string& ruta, HistorialPartidas& historial, std::ostream& errores);
+//agrega un solo registro al archivo principal
+bool agregarRegistroCSV(const string& ruta, const RegistroPartida& registro);
 
-std::string rutaDetalleHistorialCSV(const std::string& rutaHistorial);
-bool agregarDetalleHistorialCSV(const std::string& rutaHistorial, const HistorialPartidas& historial);
-bool cargarDetalleHistorialCSV(const std::string& rutaHistorial, HistorialPartidas& historial, std::ostream& errores);
+//agrega todos los registros recibidos al archivo principal
+bool agregarHistorialCSV(const string& ruta, const HistorialPartidas& historial);
+
+//carga los registros validos e informa las filas con errores
+bool cargarHistorialCSV(const string& ruta, HistorialPartidas& historial, ostream& errores);
+
+//obtiene el nombre del archivo que guarda las metricas adicionales
+string rutaDetalleHistorialCSV(const string& rutaHistorial);
+
+//agrega el detalle de los registros recibidos
+bool agregarDetalleHistorialCSV(const string& rutaHistorial, const HistorialPartidas& historial);
+
+//carga el detalle y lo relaciona con el historial principal
+bool cargarDetalleHistorialCSV(const string& rutaHistorial, HistorialPartidas& historial, ostream& errores);
+
+//guarda los dos archivos y conserva los anteriores si ocurre un error controlado
+bool guardarPartidaCompletaCSV(const string& rutaHistorial, const HistorialPartidas& nuevosResultados, ostream& errores);
 
 #endif

@@ -4,14 +4,21 @@
 #include <string>
 #include "ArgumentosCLI.h"
 
+using namespace std;
+
+//selecciona el modo de ejecucion indicado en la configuracion
 int ejecutarAplicacion(const ConfiguracionPrograma& config);
 
+//administra las partidas y el historial del modo grafico
 int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config);
 
+//ejecuta una partida completa sin abrir una ventana
 int ejecutarAplicacionLotes(const ConfiguracionPrograma& config);
 
-int ejecutarAplicacionEstadisticas(const std::string& archivo);
+//muestra las estadisticas del historial indicado
+int ejecutarAplicacionEstadisticas(const string& archivo);
 
-int ejecutarAplicacionRanking(const std::string& archivo);
+//muestra los primeros diez jugadores del ranking
+int ejecutarAplicacionRanking(const string& archivo);
 
 #endif
