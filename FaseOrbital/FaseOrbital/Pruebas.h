@@ -5,32 +5,37 @@
 //comprueba el orden de salida de una cola y su estado al retirar todas las apariciones
 bool pruebaP05();
 
-//revisa las copias por constructor y asignacion su independencia y la autoasignacion de una cola
+//revisa las copias por constructor y asignacion su independencia y la autoasignacion
 bool pruebaP06();
 
-//comprueba los recorridos y las eliminaciones de una ronda circular en ambos sentidos hasta dejarla vacia
+//comprueba los recorridos y las eliminaciones de la ronda circular
 bool pruebaP07();
 
-//verifica el primer valor conocido de la semilla cuarenta y dos y compara las siguientes cincuenta salidas
+//verifica los valores y la repetibilidad del generador
 bool pruebaGeneradorDeterminista();
 
-//vacia la cola de un turno y revisa que la cola original y la del otro turno se conserven
+//comprueba que cada jugador reciba una copia independiente de la cola
 bool pruebaCopiasIndependientesPartida();
 
-//comprueba el orden de los turnos en las dos primeras rondas y el inicio de la tercera
+//comprueba el orden de los jugadores entre rondas consecutivas
 bool pruebaOrdenSerpenteantePartida();
 
-//revisa que los eliminados conserven sus resultados y que la partida termine al quedar cero activos o uno al cerrar la ronda
-//tambien comprueba que alcanzar el limite de oleadas termine la partida
+//comprueba la eliminacion de jugadores y las condiciones de finalizacion
 bool pruebaEliminacionesPartida();
 
-//comprueba la eleccion por puntaje los desempates por oleada y precision y el empate sin precision disponible
+//comprueba la eleccion del ganador y sus criterios de desempate
 bool pruebaGanadorPartida();
 
-//compara la accion del modo por lotes con la del script vacio para un humano y con la del bot ante un enemigo
+//comprueba las acciones del script y del bot en modo por lotes
 bool pruebaIntegracionModoLotes();
 
-//comprueba el orden de insercion los filtros por jugador y oleada y el vaciado de la bitacora
+//comprueba el almacenamiento los filtros y el vaciado de la bitacora
 bool pruebaBitacoraEventos();
+
+//comprueba los alias repetidos el limite de jugadores y su reutilizacion entre partidas
+bool pruebaRegistroAliasUnicos();
+
+//comprueba que los resultados individuales se separen y conserven su historial
+bool pruebaEstadisticasAliasUnicos();
 
 #endif

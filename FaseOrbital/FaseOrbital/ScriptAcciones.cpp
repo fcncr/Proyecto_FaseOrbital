@@ -32,11 +32,18 @@ static void agregarAccionScript(ScriptAcciones& script, const AccionScript& acci
     script.tam++; //cuenta la accion que se acaba de agregar
 }
 
-//establece los valores iniciales de una lista que todavia no tiene acciones a su cargo
-void inicializarScriptAcciones(ScriptAcciones& script) {
-    script.cabeza = nullptr; //indica que no hay una primera accion
-    script.cola = nullptr; //indica que tampoco hay una ultima accion
-    script.tam = 0; //inicia el contador en cero
+ScriptAcciones::ScriptAcciones() { //crea una estructura vacia lista para utilizarse
+    cabeza = nullptr; //inicia sin un primer nodo
+    cola = nullptr; //inicia sin un ultimo nodo
+    tam = 0; //inicia el contador en cero
+}
+
+ScriptAcciones::~ScriptAcciones() { //libera los nodos al terminar la vida del objeto
+    destruirScriptAcciones(*this); //reutiliza la liberacion de nodos
+}
+
+void inicializarScriptAcciones(ScriptAcciones& script) { //reinicia la estructura sin perder nodos reservados
+    destruirScriptAcciones(script); //libera el contenido anterior y deja los campos vacios
 }
 
 //borra los nodos del script y restablece sus extremos y contador

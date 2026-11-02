@@ -1,9 +1,17 @@
 #include "ListaEnemigos.h"
 
-void inicializarListaEnemigos(ListaEnemigos& lista) { //Prepara la lista para su primer uso sin liberar nodos previos
-    lista.cabeza = nullptr; //Establece que la lista no tiene un primer nodo
-    lista.cola = nullptr; //Establece que la lista no tiene un ultimo nodo
-    lista.tam = 0; //Inicia el contador de enemigos en cero
+ListaEnemigos::ListaEnemigos() { //crea la lista vacia antes de utilizarla
+    cabeza = nullptr; //inicia el enlace sin nodos
+    cola = nullptr; //inicia el enlace sin nodos
+    tam = 0; //inicia el contador de nodos en cero
+}
+
+ListaEnemigos::~ListaEnemigos() { //libera los nodos propios al terminar la vida del objeto
+    destruirListaEnemigos(*this); //deja la lista vacia mediante la misma limpieza manual
+}
+
+void inicializarListaEnemigos(ListaEnemigos& lista) { //reinicia la lista sin perder los nodos que ya existian
+    destruirListaEnemigos(lista); //libera los nodos previos y restablece los campos
 }
 
 NodoEnemigo* insertarFinal(ListaEnemigos& lista, const Enemigo& enemigo) { //Agrega un enemigo despues del ultimo nodo actual

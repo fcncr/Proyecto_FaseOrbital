@@ -54,39 +54,72 @@ static bool pruebaBotSeleccionObjetivo() {
     return resultado; //indica si la decision coincide con el objetivo esperado
 }
 
-//comprueba que el bot no pida cambios cuando los enemigos estan sobre la orbita o dentro de ella
+//comprueba que sin objetivo se cancele el giro pendiente y se conserve la fase durante un tick real
+//revisa que el pulso siga disponible con cinco enemigos cercanos aunque ninguno sea un objetivo
 static bool pruebaBotSinObjetivo() {
-    Jugador jugador{ "BOT1", true, 100, 0, 0, 0, 0, false }; //prepara al bot sin carga disponible para el pulso
+    bool resultado = true; //conserva los fallos de los tres escenarios
 
-    Motor motor{}; //prepara el estado minimo necesario para consultar al bot
-    motor.jugador = &jugador; //vincula los datos del participante
-    motor.nave.anguloActual = 25.0; //situa la nave en un angulo distinto al de ambos enemigos
-    motor.nave.anguloObjetivo = 25.0; //deja el destino actual en ese mismo angulo
-    motor.nave.color = 2; //usa una fase diferente a la de los enemigos
-    inicializarListaEnemigos(motor.enemigos); //inicia la lista del escenario
+    for (int caso = 0; caso < 3; caso++) { //prueba lista vacia enemigos no elegibles y pulso sin objetivo
+        ColaSpawn cola; //guarda una aparicion futura para mantener activo el turno
+        inicializarColaSpawn(cola); //prepara la cola del escenario
+        Spawn futuro{ 60, Dron, 0, 180, 0 }; //evita que la lista vacia cierre la oleada
+        encolarSpawn(cola, futuro); //reserva la aparicion sin crear todavia un enemigo
 
-    insertarFinal(motor.enemigos, crearEnemigoPrueba(1, 0, 100.0, 50.0)); //coloca un enemigo exactamente sobre la orbita
-    insertarFinal(motor.enemigos, crearEnemigoPrueba(2, 1, 80.0, 90.0)); //coloca otro enemigo mas cerca del nucleo
+        Jugador jugador{ "BOT1", true, 100, 0, 0, 0, 1, false }; //prepara un bot con vida completa y sin carga
 
-    AccionMotor accion = obtenerAccionBot(motor); //consulta la accion cuando no hay un objetivo valido
+        if (caso == 2) { //habilita el pulso solamente en el ultimo escenario
+            jugador.cargaPulso = 100; //completa la carga antes de consultar al bot
+        }
 
-    bool resultado = true; //mantiene cualquier solicitud inesperada como fallo
+        Motor motor; //guarda el estado completo que recibira el tick
+        inicializarMotor(motor, &jugador, 1, cola); //inicia las listas y copia la aparicion futura
+        motor.tickActual = 1; //elige un tick sin disparo automatico
+        motor.nave.anguloActual = 25.0; //fija la orientacion que debe conservarse
+        motor.nave.anguloObjetivo = 90.0; //deja un giro pendiente para detectar la regresion
+        motor.nave.color = 2; //usa una fase distinta de las de los enemigos
 
-    if (accion.cambiarAngulo) { //detecta si se intenta apuntar a un enemigo que debe ignorarse
-        resultado = false; //marca el cambio de destino inesperado
+        if (caso >= 1) { //agrega enemigos que el bot debe ignorar como objetivos
+            insertarFinal(motor.enemigos, crearEnemigoPrueba(1, 0, 100.0, 180.0)); //incluye el limite exacto de la orbita lejos de la nave
+            insertarFinal(motor.enemigos, crearEnemigoPrueba(2, 1, 80.0, 180.0)); //incluye un enemigo dentro de la orbita y lejos del nucleo
+        }
+
+        if (caso == 2) { //completa cinco enemigos cercanos sin agregar objetivos elegibles
+            insertarFinal(motor.enemigos, crearEnemigoPrueba(3, 0, 90.0, 180.0)); //queda lejos de la nave y de la primera banda del pulso
+            insertarFinal(motor.enemigos, crearEnemigoPrueba(4, 1, 85.0, 200.0)); //aumenta el conteo sin provocar choques
+            insertarFinal(motor.enemigos, crearEnemigoPrueba(5, 0, 95.0, 220.0)); //alcanza la cantidad necesaria para solicitar el pulso
+        }
+
+        AccionMotor accion = obtenerAccionBot(motor); //consulta la decision sin modificar todavia la simulacion
+
+        if (accion.cambiarColor || accion.solicitarPulso != (caso == 2)) { //conserva la fase y pide pulso solamente con carga y cinco enemigos
+            resultado = false;
+        }
+
+        procesarTick(motor, accion); //ejecuta la accion el movimiento y el pulso con las reglas reales
+
+        if (motor.nave.anguloActual != 25.0 || motor.nave.anguloObjetivo != 25.0 || motor.nave.color != 2) { //exige detener el giro pendiente y conservar la fase
+            resultado = false;
+        }
+
+        if (motor.tickActual != 2 || jugador.vidaNucleo != 100 || motor.turnoTerminado) { //confirma un tick completo sin choques ni cierre de turno
+            resultado = false;
+        }
+
+        if (caso == 2) { //revisa el resultado completo de activar el pulso sin objetivo
+            if (!motor.pulso.activo || motor.pulso.radioActual != 32.0 || jugador.cargaPulso != 0 || jugador.metricas.pulsosUtilizados != 1 || motor.enemigos.tam != 5) { //la onda avanza doce y consume la carga sin alcanzar todavia los enemigos
+                resultado = false;
+            }
+        }
+        else { //sin solicitud no debe aparecer una onda ni contarse una activacion
+            if (motor.pulso.activo || jugador.metricas.pulsosUtilizados != 0) {
+                resultado = false;
+            }
+        }
+
+        destruirMotor(motor); //libera las listas y la copia de apariciones del escenario
+        destruirColaSpawn(cola); //libera la aparicion original
     }
-
-    if (accion.cambiarColor) { //comprueba que no se pida otra fase sin objetivo
-        resultado = false; //marca el cambio de color inesperado
-    }
-
-    if (accion.solicitarPulso) { //comprueba que no se pida pulso sin carga ni suficientes enemigos
-        resultado = false; //registra una solicitud que no corresponde al escenario
-    }
-
-    destruirListaEnemigos(motor.enemigos); //libera los dos enemigos que no eran candidatos
-
-    return resultado; //devuelve si todas las solicitudes permanecieron desactivadas
+    return resultado; //indica si los tres escenarios conservaron orientacion y fase con el pulso correcto
 }
 
 //comprueba que el bot apunte al enemigo sin pedir otra fase cuando ambos ya tienen el mismo color

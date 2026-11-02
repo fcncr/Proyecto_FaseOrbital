@@ -13,9 +13,14 @@ struct BitacoraEventos { //mantiene los eventos en el orden en que se agregaron
     NodoEvento* cabeza; //permite llegar al primer evento de la lista
     NodoEvento* cola; //permite agregar eventos despues del ultimo sin recorrer la lista
     int tam; //guarda cuantos eventos hay en la bitacora
+
+    BitacoraEventos(); //crea una estructura vacia
+    ~BitacoraEventos(); //libera los nodos al terminar su uso
+    BitacoraEventos(const BitacoraEventos&) = delete; //se usa por referencia para no compartir nodos
+    BitacoraEventos& operator=(const BitacoraEventos&) = delete; //cada estructura conserva sus propios nodos
 };
 
-void inicializarBitacora(BitacoraEventos& bitacora); //prepara una bitacora para empezar a usarla sin borrar nodos anteriores
+void inicializarBitacora(BitacoraEventos& bitacora); //libera los eventos anteriores y deja la bitacora vacia
 void agregarEventoFinal(BitacoraEventos& bitacora, const Evento& evento); //agrega una copia del evento al final de la lista
 void recorrerBitacora(const BitacoraEventos& bitacora, void (*procesar)(const Evento&)); //usa la funcion recibida para revisar cada evento
 void filtrarPorJugador(const BitacoraEventos& origen, const std::string& jugador, BitacoraEventos& destino); //deja en destino solo los eventos del jugador indicado

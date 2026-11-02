@@ -14,9 +14,14 @@ struct HistorialPartidas { //mantiene los registros en el orden en que se agrega
     NodoRegistroPartida* cabeza; //permite llegar al primer registro de la lista
     NodoRegistroPartida* cola; //permite agregar registros al final sin recorrer toda la lista
     int tam; //cuenta los registros guardados y no las partidas distintas
+
+    HistorialPartidas(); //crea una estructura vacia
+    ~HistorialPartidas(); //libera los nodos al terminar su uso
+    HistorialPartidas(const HistorialPartidas&) = delete; //se usa por referencia para no compartir nodos
+    HistorialPartidas& operator=(const HistorialPartidas&) = delete; //cada estructura conserva sus propios nodos
 };
 
-void inicializarHistorial(HistorialPartidas& historial); //prepara el historial para su primer uso sin liberar nodos anteriores
+void inicializarHistorial(HistorialPartidas& historial); //libera los registros anteriores y deja el historial vacio
 void agregarRegistroFinal(HistorialPartidas& historial, const RegistroPartida& registro); //agrega una copia del registro al final del historial
 void recorrerHistorial(const HistorialPartidas& historial, void (*procesar)(const RegistroPartida&)); //usa la funcion recibida para revisar cada registro
 int contarRegistros(const HistorialPartidas& historial); //devuelve cuantos registros hay en la lista

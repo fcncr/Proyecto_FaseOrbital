@@ -1,9 +1,17 @@
 #include "BitacoraEventos.h"
 
-void inicializarBitacora(BitacoraEventos& bitacora) { //establece los valores iniciales sin liberar nodos que ya existieran
-    bitacora.cabeza = nullptr; //indica que todavia no hay un primer evento
-    bitacora.cola = nullptr; //indica que tampoco hay un ultimo evento
-    bitacora.tam = 0; //empieza el contador de eventos en cero
+BitacoraEventos::BitacoraEventos() { //inicia los campos sin liberar memoria
+    cabeza = nullptr; //deja la estructura sin primer nodo
+    cola = nullptr; //deja la estructura sin ultimo nodo
+    tam = 0; //inicia el conteo en cero
+}
+
+BitacoraEventos::~BitacoraEventos() { //libera los nodos que pertenecen a esta estructura
+    destruirBitacora(*this); //reutiliza la liberacion de nodos
+}
+
+void inicializarBitacora(BitacoraEventos& bitacora) { //reinicia la estructura sin perder nodos reservados
+    destruirBitacora(bitacora); //libera el contenido anterior y deja los campos vacios
 }
 
 void agregarEventoFinal(BitacoraEventos& bitacora, const Evento& evento) { //guarda un nuevo evento al final de la bitacora

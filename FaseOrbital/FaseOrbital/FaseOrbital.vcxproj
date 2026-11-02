@@ -163,6 +163,9 @@
     <ClCompile Include="ListaBalas.cpp" />
     <ClCompile Include="ListaEnemigos.cpp" />
     <ClCompile Include="ListaPuntajes.cpp" />
+    <None Include="Makefile">
+      <FileType>Document</FileType>
+    </None>
     <ClCompile Include="ModoLotes.cpp" />
     <ClCompile Include="Motor.cpp" />
     <ClCompile Include="Oleada.cpp" />

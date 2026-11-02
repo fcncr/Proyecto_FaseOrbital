@@ -38,10 +38,17 @@ static void eliminarAliasRanking(Ranking& ranking, const string& alias) {
     }
 }
 
-//establece los valores iniciales de un ranking que todavia no tiene nodos a su cargo
-void inicializarRanking(Ranking& ranking) {
-    ranking.cabeza = nullptr; //indica que no hay un primer jugador
-    ranking.tam = 0; //deja el conteo de jugadores en cero
+Ranking::Ranking() { //inicia los campos sin liberar memoria
+    cabeza = nullptr; //deja la estructura sin primer nodo
+    tam = 0; //inicia el conteo en cero
+}
+
+Ranking::~Ranking() { //libera los nodos que pertenecen a esta estructura
+    destruirRanking(*this); //reutiliza la liberacion de nodos
+}
+
+void inicializarRanking(Ranking& ranking) { //reinicia la estructura sin perder nodos reservados
+    destruirRanking(ranking); //libera el contenido anterior y deja los campos vacios
 }
 
 //guarda una copia de un registro independiente y la ubica segun puntaje precision y alias

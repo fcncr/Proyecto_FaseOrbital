@@ -20,9 +20,14 @@ struct NodoRanking { //une el resultado de un jugador con el siguiente puesto
 struct Ranking { //mantiene una lista ordenada con un registro por alias
     NodoRanking* cabeza; //jugador que ocupa el primer puesto
     int tam; //cantidad de jugadores incluidos en la lista
+
+    Ranking(); //crea una estructura vacia
+    ~Ranking(); //libera los nodos al terminar su uso
+    Ranking(const Ranking&) = delete; //se usa por referencia para no compartir nodos
+    Ranking& operator=(const Ranking&) = delete; //cada estructura conserva sus propios nodos
 };
 
-//prepara un ranking vacio para su primer uso sin liberar nodos anteriores
+//libera los registros anteriores y deja el ranking vacio
 void inicializarRanking(Ranking& ranking);
 
 //inserta un registro independiente del ranking y reemplaza el del mismo alias si ya existe

@@ -286,6 +286,95 @@ static bool pruebaGuardarPartidaCompletaP13() {
     return resultado; //devuelve el resultado completo de la prueba
 }
 
+//comprueba que las filas invalidas no bloqueen partidas nuevas ni oculten duplicados validos
+static bool pruebaFilasInvalidasNoBloqueanP13() {
+    const string ruta = "historial_invalidos_guardado_p13.csv"; //usa un archivo independiente del historial del juego
+    const string detalle = rutaDetalleHistorialCSV(ruta); //obtiene la ruta del archivo auxiliar de prueba
+    const string rutas[] = { ruta, detalle, ruta + ".nuevo.tmp", detalle + ".nuevo.tmp", ruta + ".anterior.bak", detalle + ".anterior.bak" }; //reune las rutas utilizadas solamente por esta prueba
+
+    for (const string& archivo : rutas) remove(archivo.c_str()); //elimina los archivos de una ejecucion anterior
+
+    bool resultado = true; //conserva cualquier fallo encontrado
+
+    {
+        ofstream archivo(ruta, ios::binary); //crea el historial inicial de prueba
+        archivo << encabezadoHistorialCSV() << "\r\n1,fila_invalida\r\n"; //escribe el encabezado y una fila incompleta con identificador uno
+        archivo.close(); //cierra el archivo antes de intentar guardar la partida
+        if (!archivo.good()) resultado = false; //comprueba que el archivo se escribio correctamente
+    }
+
+    HistorialPartidas nuevos; //guarda los resultados de la partida que se agregara
+    HistorialPartidas cargado; //recibe los registros recuperados desde los archivos
+    inicializarHistorial(nuevos); //prepara la lista de resultados nuevos
+    inicializarHistorial(cargado); //prepara la lista para la recarga
+
+    ostringstream errores; //recibe los avisos de carga y guardado
+
+    if (!cargarHistorialCSV(ruta, cargado, errores) || cargado.tam != 0 || errores.str().find("Linea 2 invalida") == string::npos) resultado = false; //comprueba que la fila incompleta sea reportada y omitida
+
+    for (int id = 1; id <= 3; id++) { //guarda tres partidas diferentes en el mismo historial
+        if (id == 3) { //prepara otra fila invalida antes de guardar la tercera partida
+            ofstream archivo(ruta, ios::app); //abre el historial conservando los registros anteriores
+            archivo << "3,NO_NUMERO,lotes,BOT1,1,1,900,1,100,80,20,4,1,20,500,2,1,0,1,0,0" << '\n'; //agrega una fila con identificador tres y semilla invalida
+            archivo.close(); //cierra el archivo antes de intentar guardar la partida
+            if (!archivo.good()) resultado = false; //comprueba que la fila de prueba se escribio correctamente
+        }
+
+        destruirHistorial(nuevos); //libera los resultados de la iteracion anterior
+
+        RegistroPartida registro = crearRegistroP13(id, 42u, "lotes", "BOT1", true, 1, 900, 1, 100, 80, 20); //crea los datos de una partida valida
+        registro.detalleDisponible = true; //indica que el registro tiene datos de detalle
+        registro.correctosC = 80; //asigna los impactos correctos al color cian
+        registro.erroneosC = 20; //asigna los impactos erroneos al color cian
+        registro.danoDron = 20; //asigna el dano recibido a los drones
+
+        agregarRegistroFinal(nuevos, registro); //prepara el registro que se guardara
+
+        errores.str(""); //borra los mensajes de la operacion anterior
+        errores.clear(); //restablece el estado del flujo de mensajes
+
+        if (!guardarPartidaCompletaCSV(ruta, nuevos, errores)) resultado = false; //comprueba que la fila invalida no impida guardar
+
+        destruirHistorial(cargado); //libera los registros cargados anteriormente
+
+        errores.str(""); //borra los mensajes de la operacion anterior
+        errores.clear(); //restablece el estado del flujo de mensajes
+
+        if (!cargarHistorialCSV(ruta, cargado, errores) || !cargarDetalleHistorialCSV(ruta, cargado, errores)) resultado = false; //recupera el historial y su detalle
+        if (cargado.tam != id || errores.str().find("Linea 2 invalida") == string::npos) resultado = false; //revisa la cantidad de registros y el aviso de la primera fila invalida
+        if (id == 3 && errores.str().find("Linea 5 invalida") == string::npos) resultado = false; //comprueba el aviso de la segunda fila invalida
+
+        int esperado = 1; //indica el identificador que debe tener el primer registro
+        const NodoRegistroPartida* actual = cargado.cabeza; //comienza el recorrido del historial recuperado
+
+        while (actual != nullptr) { //revisa los registros que se guardaron correctamente
+            const RegistroPartida& dato = actual->dato; //consulta los datos del registro actual
+
+            if (dato.idPartida != esperado || !dato.detalleDisponible || dato.correctosC != 80 || dato.erroneosC != 20 || dato.danoDron != 20) resultado = false; //comprueba el identificador y los datos recuperados
+
+            esperado++; //avanza al identificador de la siguiente partida
+            actual = actual->sig; //continua con el siguiente registro
+        }
+    }
+
+    string principalAntes = leerContenidoPruebaP13(ruta); //conserva el contenido principal antes de intentar un duplicado
+    string detalleAntes = leerContenidoPruebaP13(detalle); //conserva el contenido auxiliar antes de intentar un duplicado
+
+    errores.str(""); //borra los mensajes de la operacion anterior
+    errores.clear(); //restablece el estado del flujo de mensajes
+
+    if (guardarPartidaCompletaCSV(ruta, nuevos, errores)) resultado = false; //comprueba que no se pueda volver a guardar la tercera partida
+    if (errores.str() != "La partida ya aparece en el historial principal.\n") resultado = false; //comprueba que se informe el duplicado verdadero
+    if (leerContenidoPruebaP13(ruta) != principalAntes || leerContenidoPruebaP13(detalle) != detalleAntes) resultado = false; //comprueba que el rechazo conserve ambos archivos
+
+    destruirHistorial(nuevos); //libera los resultados utilizados durante la prueba
+    destruirHistorial(cargado); //libera los registros recuperados del historial
+
+    for (const string& archivo : rutas) remove(archivo.c_str()); //elimina los archivos utilizados por la prueba
+
+    return resultado; //devuelve el resultado de todas las comprobaciones
+}
+
 //comprueba la lectura del historial las estadisticas el ranking y el guardado conjunto con su detalle
 bool pruebaP13() {
     const string ruta = "historial_p13_prueba.csv"; //usa un archivo independiente del historial real
@@ -411,5 +500,6 @@ bool pruebaP13() {
         resultado = false; //marca el error si falla alguna de ellas
     }
 
+    if (!pruebaFilasInvalidasNoBloqueanP13()) resultado = false; //revisa el guardado despues de omitir filas invalidas
     return resultado; //devuelve el resultado final de p13
 }

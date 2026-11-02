@@ -1,8 +1,16 @@
 #include "ListaBalas.h" //Incluye las estructuras y funciones de la lista de balas
 
-void inicializarListaBalas(ListaBalas& lista) { //Prepara la lista para su primer uso sin liberar nodos previos
-    lista.cabeza = nullptr; //Establece que la lista no tiene un primer nodo
-    lista.tam = 0; //Inicia el contador de balas en cero
+ListaBalas::ListaBalas() { //crea la lista vacia antes de utilizarla
+    cabeza = nullptr; //inicia el enlace sin nodos
+    tam = 0; //inicia el contador de nodos en cero
+}
+
+ListaBalas::~ListaBalas() { //libera los nodos propios al terminar la vida del objeto
+    destruirListaBalas(*this); //deja la lista vacia mediante la misma limpieza manual
+}
+
+void inicializarListaBalas(ListaBalas& lista) { //reinicia la lista sin perder los nodos que ya existian
+    destruirListaBalas(lista); //libera los nodos previos y restablece los campos
 }
 
 void insertarInicio(ListaBalas& lista, const Bala& bala) { //Agrega una bala antes del primer nodo actual

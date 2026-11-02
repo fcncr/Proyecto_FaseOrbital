@@ -6,6 +6,7 @@
 #include "ModoLotes.h"
 #include "Bot.h"
 #include "BitacoraEventos.h"
+#include "Estadisticas.h" 
 
 //comprueba el orden de salida de una cola y su estado al retirar todas las apariciones
 bool pruebaP05() {
@@ -823,4 +824,112 @@ bool pruebaBitacoraEventos() {
     }
 
     return resultado; //devuelve el resultado de todas las comprobaciones realizadas
+}
+
+//comprueba que los alias repetidos se rechacen sin modificar los jugadores registrados
+bool pruebaRegistroAliasUnicos() {
+    Partida partida; //guarda la partida utilizada para revisar el registro
+    inicializarPartida(partida, 42, 1); //prepara una partida con semilla fija y una oleada
+    bool resultado = true; //conserva cualquier fallo encontrado
+
+    if (!agregarJugadorPartida(partida, "Ana", false)) resultado = false; //registra al primer participante
+    if (!agregarJugadorPartida(partida, "Luis", true)) resultado = false; //registra al segundo participante
+
+    partida.jugadores[0].puntaje = 350; //coloca un puntaje que debe conservarse
+    partida.jugadores[0].vidaNucleo = 72; //coloca una vida que debe conservarse
+    partida.jugadores[0].cargaPulso = 40; //coloca una carga que debe conservarse
+    partida.jugadores[0].metricas.disparos = 12; //coloca una estadistica que debe conservarse
+
+    NodoJugador* actual = partida.ronda.actual; //guarda el nodo que tiene el turno
+    NodoJugador* siguiente = actual != nullptr ? actual->sig : nullptr; //guarda su enlace siguiente
+    NodoJugador* anterior = actual != nullptr ? actual->ant : nullptr; //guarda su enlace anterior
+
+    if (agregarJugadorPartida(partida, "Ana", true)) resultado = false; //comprueba que el alias repetido sea rechazado
+    if (partida.cantidadJugadores != 2 || partida.ronda.tam != 2 || partida.ronda.actual != actual) resultado = false; //comprueba que no cambien la cantidad ni el turno
+    if (actual == nullptr || actual->sig != siguiente || actual->ant != anterior) resultado = false; //comprueba que se conserven los enlaces de la ronda
+
+    if (partida.jugadores[0].alias != "Ana" || partida.jugadores[0].esBot || partida.jugadores[0].puntaje != 350 || partida.jugadores[0].vidaNucleo != 72 || partida.jugadores[0].cargaPulso != 40 || partida.jugadores[0].metricas.disparos != 12) { //revisa que el rechazo no altere los datos existentes
+        resultado = false; //registra que algun dato fue modificado
+    }
+
+    const string restantes[] = { "Bea", "Carlos", "Diana", "Elena" }; //prepara los nombres que completaran los seis participantes
+
+    for (const string& alias : restantes) { //recorre los cuatro nombres pendientes
+        if (!agregarJugadorPartida(partida, alias, false)) resultado = false; //comprueba que se acepten los nombres distintos
+    }
+
+    if (agregarJugadorPartida(partida, "Septimo", false)) resultado = false; //comprueba que no se permita un septimo participante
+    if (partida.cantidadJugadores != 6 || partida.ronda.tam != 6 || partida.ronda.actual != actual) resultado = false; //revisa que se conserve el limite y el turno inicial
+
+    NodoJugador* nodo = partida.ronda.actual; //comienza el recorrido de la lista circular
+
+    for (int i = 0; i < 6; i++) { //revisa los seis jugadores registrados
+        if (nodo == nullptr || nodo->jugador != &partida.jugadores[i] || nodo->sig == nullptr || nodo->ant == nullptr || nodo->sig->ant != nodo || nodo->ant->sig != nodo) { //comprueba el orden y los enlaces de cada nodo
+            resultado = false; //registra un fallo en la estructura
+            break; //evita continuar por enlaces incorrectos
+        }
+
+        nodo = nodo->sig; //avanza al siguiente participante
+    }
+
+    if (nodo != partida.ronda.actual) resultado = false; //comprueba que el recorrido termine en el nodo inicial
+
+    Partida otraPartida; //prepara una partida independiente
+    inicializarPartida(otraPartida, 7, 1); //inicializa la segunda partida
+    if (!agregarJugadorPartida(otraPartida, "Ana", false)) resultado = false; //comprueba que el mismo alias pueda usarse en otra partida
+
+    destruirPartida(otraPartida); //libera los recursos de la segunda partida
+    destruirPartida(partida); //libera los recursos de la primera partida
+
+    return resultado; //devuelve el resultado de todas las comprobaciones
+}
+
+//comprueba que las estadisticas se separen por jugador y se acumulen entre partidas
+bool pruebaEstadisticasAliasUnicos() {
+    HistorialPartidas historial; //guarda los resultados de las partidas de prueba
+    inicializarHistorial(historial); //prepara el historial vacio
+
+    ScriptAcciones script; //prepara el script utilizado por el modo por lotes
+    inicializarScriptAcciones(script); //deja el script vacio porque los participantes son bots
+
+    bool resultado = true; //conserva cualquier fallo encontrado
+
+    for (int idPartida = 1; idPartida <= 2; idPartida++) { //ejecuta dos partidas con los mismos participantes
+        Partida partida; //guarda la partida del ciclo actual
+        inicializarPartida(partida, 42, 1); //usa la misma semilla y una sola oleada
+
+        if (!agregarJugadorPartida(partida, "BOT1", true)) resultado = false; //registra al primer bot
+        if (!agregarJugadorPartida(partida, "BOT2", true)) resultado = false; //registra al segundo bot
+        if (agregarJugadorPartida(partida, "BOT1", true)) resultado = false; //comprueba que el primer alias no pueda repetirse
+        if (!ejecutarRondaModoLotes(partida, script, 10000) || !partida.finalizada) resultado = false; //ejecuta la partida y comprueba que termine
+        if (partida.cantidadJugadores != 2) resultado = false; //comprueba que solamente existan los dos bots originales
+
+        for (int i = 0; i < partida.cantidadJugadores; i++) { //revisa los resultados individuales
+            const Jugador& jugador = partida.jugadores[i]; //consulta al jugador actual
+            ResumenOleadaJugador resumen; //recibe su resumen calculado desde la bitacora
+
+            if (jugador.puntaje != 900 || !calcularResumenOleadaJugador(partida.bitacora, jugador.alias, 1, resumen) || resumen.puntajeAcumulado != 900 || resumen.bajas != 9) { //comprueba que la linea de tiempo no mezcle los resultados
+                resultado = false; //registra una diferencia en los resultados individuales
+            }
+        }
+
+        agregarResultadosPartidaHistorial(partida, idPartida, "lotes", historial); //agrega los resultados de esta partida al historial
+
+        for (int i = 0; i < partida.cantidadJugadores; i++) { //revisa la continuidad historica de ambos jugadores
+            EstadisticasJugador estadisticas; //recibe los resultados historicos del participante
+
+            if (!calcularEstadisticasJugador(historial, partida.jugadores[i].alias, estadisticas) || estadisticas.partidasJugadas != idPartida || estadisticas.mediaPuntaje != 900.0) { //comprueba el numero de partidas y el promedio individual
+                resultado = false; //registra un error en la acumulacion historica
+            }
+        }
+
+        destruirPartida(partida); //libera los recursos antes de iniciar la siguiente partida
+    }
+
+    if (historial.tam != 4) resultado = false; //comprueba que existan dos registros por cada una de las dos partidas
+
+    destruirScriptAcciones(script); //libera las acciones del script
+    destruirHistorial(historial); //libera los registros del historial
+
+    return resultado; //devuelve el resultado de las comprobaciones
 }

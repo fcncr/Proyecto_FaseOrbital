@@ -63,10 +63,18 @@ static NodoPuntaje* mergeSortPuntajes(NodoPuntaje* cabeza) { //ordena la lista d
     return fusionarListasPuntajes(izquierda, derecha); //une las partes ordenadas usando los mismos nodos
 }
 
-void inicializarListaPuntajes(ListaPuntajes& lista) { //prepara la lista antes de guardar puntajes
-    lista.cabeza = nullptr; //todavia no hay un primer nodo
-    lista.cola = nullptr; //todavia no hay un ultimo nodo
-    lista.tam = 0; //la lista empieza sin puntajes
+ListaPuntajes::ListaPuntajes() { //crea una estructura vacia lista para utilizarse
+    cabeza = nullptr; //inicia sin un primer nodo
+    cola = nullptr; //inicia sin un ultimo nodo
+    tam = 0; //inicia el contador en cero
+}
+
+ListaPuntajes::~ListaPuntajes() { //libera los nodos al terminar la vida del objeto
+    destruirListaPuntajes(*this); //reutiliza la liberacion de nodos
+}
+
+void inicializarListaPuntajes(ListaPuntajes& lista) { //reinicia la estructura sin perder nodos reservados
+    destruirListaPuntajes(lista); //libera el contenido anterior y deja los campos vacios
 }
 
 void agregarPuntajeFinal(ListaPuntajes& lista, int puntaje) { //guarda un nuevo puntaje al final

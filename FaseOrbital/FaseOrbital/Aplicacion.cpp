@@ -10,10 +10,13 @@
 #include "Persistencia.h"
 #include "Estadisticas.h"
 #include "Ranking.h"
+
+#ifndef FASE_ORBITAL_SIN_GRAFICOS
 #include "VistaAllegro.h"
 #include "InterfazAllegro.h"
 #include "ControladorAllegro.h"
 #include "Bot.h"
+#endif
 
 //reconoce como bot cualquier alias que empiece con las tres letras bot en mayusculas
 static bool esAliasBot(const string& alias) {
@@ -121,6 +124,8 @@ static void mostrarEstadisticasJugador(const EstadisticasJugador& estadisticas) 
     imprimirHistogramaASCII(estadisticas.histograma, cout); //imprime los diez intervalos de puntajes
     cout << '\n'; //separa este reporte del siguiente jugador
 }
+
+#ifndef FASE_ORBITAL_SIN_GRAFICOS
 
 //ejecuta el turno con controles o bot y atiende la pausa y la salida de la partida
 //devuelve falso si falta el jugador y deja las interrupciones indicadas en las banderas recibidas
@@ -416,7 +421,7 @@ int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config) {
 
     return resultado ? 0 : 1; //indica si la ejecucion termino correctamente
 }
-
+#endif
 //calcula porcentajes evitando divisiones entre cero
 static double calcularPorcentajeReporteLotes(long long cantidad, long long total) {
     if (total <= 0) { //comprueba si no existe un total valido
@@ -770,11 +775,16 @@ int ejecutarAplicacionRanking(const string& archivo) {
     return 0; //informa que termino correctamente
 }
 
-//ejecuta el modo de una configuracion ya validada y devuelve cero si termina bien o uno si falla
+//ejecuta el modo solicitado y devuelve su resultado al programa principal
 int ejecutarAplicacion(const ConfiguracionPrograma& config) {
     switch (config.modo) { //consulta el modo indicado en los argumentos
     case MODO_GRAFICO: //selecciona la ventana con el menu y las partidas
+#ifdef FASE_ORBITAL_SIN_GRAFICOS
+        cerr << "Esta compilacion no incluye el modo grafico. Usa --lotes, --estadisticas, --ranking o --pruebas." << '\n'; //indica los modos disponibles en este ejecutable
+        return 1; //termina porque esta compilacion no incluye la ventana
+#else
         return ejecutarAplicacionGrafica(config); //abre el modo grafico
+#endif
 
     case MODO_LOTES: //selecciona la partida sin ventana
         return ejecutarAplicacionLotes(config); //ejecuta la simulacion por lotes

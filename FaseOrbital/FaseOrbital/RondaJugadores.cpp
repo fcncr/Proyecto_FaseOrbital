@@ -1,8 +1,16 @@
 #include "RondaJugadores.h"
 
-void inicializarRondaJugadores(RondaJugadores& ronda) { //prepara la ronda para su primer uso sin liberar nodos previos
-    ronda.actual = nullptr; //establece que todavia no hay un jugador en turno
-    ronda.tam = 0; //inicia el contador de jugadores en cero
+RondaJugadores::RondaJugadores() { //crea la ronda vacia antes de utilizarla
+    actual = nullptr; //inicia el enlace sin nodos
+    tam = 0; //inicia el contador de nodos en cero
+}
+
+RondaJugadores::~RondaJugadores() { //libera los nodos propios al terminar la vida del objeto
+    destruirRondaJugadores(*this); //deja la ronda vacia mediante la misma limpieza manual
+}
+
+void inicializarRondaJugadores(RondaJugadores& ronda) { //reinicia la ronda sin perder los nodos que ya existian
+    destruirRondaJugadores(ronda); //libera los nodos previos y restablece los campos
 }
 
 void agregarJugador(RondaJugadores& ronda, Jugador* jugador) { //agrega un nodo que apunta al jugador recibido

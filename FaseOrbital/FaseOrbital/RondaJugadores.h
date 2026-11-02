@@ -12,9 +12,14 @@ struct NodoJugador { //enlaza un jugador con sus vecinos dentro de la ronda circ
 struct RondaJugadores { //organiza los jugadores mediante una lista circular doble
     NodoJugador* actual; //apunta al nodo del turno actual o a nullptr si no hay jugadores
     int tam; //guarda la cantidad de jugadores enlazados en la ronda
+
+    RondaJugadores(); //crea la ronda vacia con sus campos inicializados
+    ~RondaJugadores(); //libera los nodos propios al terminar la vida del objeto
+    RondaJugadores(const RondaJugadores& otra) = delete; //se usa por referencia porque sus nodos tienen un unico propietario
+    RondaJugadores& operator=(const RondaJugadores& otra) = delete; //evita compartir nodos mediante una asignacion
 };
 
-void inicializarRondaJugadores(RondaJugadores& ronda); //establece los valores iniciales sin liberar nodos previos
+void inicializarRondaJugadores(RondaJugadores& ronda); //libera los nodos previos y deja la ronda vacia
 void agregarJugador(RondaJugadores& ronda, Jugador* jugador); //inserta un nodo antes del actual sin cambiar el turno existente
 void avanzarJugador(RondaJugadores& ronda, bool horario); //cambia el turno al siguiente o al anterior segun el sentido recibido
 Jugador* eliminarJugadorActual(RondaJugadores& ronda, bool horario); //retira el nodo actual y devuelve su jugador sin destruirlo

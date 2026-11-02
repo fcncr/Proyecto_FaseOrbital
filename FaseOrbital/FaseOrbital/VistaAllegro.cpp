@@ -20,13 +20,13 @@ static ALLEGRO_COLOR colorJuego(int color) {
     return al_map_rgb(200, 200, 200); //usa gris cuando el color no es valido
 }
 
-//convierte un radio y un angulo en grados a coordenadas de pantalla usando el centro de la ventana y la escala visual
+//convierte las coordenadas polares del motor a la pantalla
 static void polarAPantalla(const VistaAllegro& vista, double radio, double angulo, float& x, float& y) {
     double radianes = angulo * PI_VISTA / 180.0; //convierte el angulo a radianes
     double centroX = static_cast<double>(vista.ancho) / 2.0; //calcula el centro horizontal
     double centroY = static_cast<double>(vista.alto) / 2.0; //calcula el centro vertical
     x = static_cast<float>(centroX + radio * ESCALA_MUNDO * cos(radianes)); //obtiene la coordenada horizontal
-    y = static_cast<float>(centroY + radio * ESCALA_MUNDO * sin(radianes)); //obtiene la coordenada vertical
+    y = static_cast<float>(centroY - radio * ESCALA_MUNDO * sin(radianes)); //invierte el eje vertical para representar angulos antihorarios
 }
 
 //dibuja la orbita el nucleo y un arco de vida sin cambiar los valores del jugador
@@ -59,39 +59,41 @@ static void dibujarNucleoYOrbita(const VistaAllegro& vista, const Motor& motor) 
 
 //ubica la nave en su orbita y dibuja un triangulo apuntando hacia fuera del nucleo
 static void dibujarNave(const VistaAllegro& vista, const Motor& motor) {
-    float x; //recibe la posicion horizontal
-    float y; //recibe la posicion vertical
+    float x;
+    float y;
     polarAPantalla(vista, 100.0, motor.nave.anguloActual, x, y); //ubica la nave sobre el anillo
 
-    double radianes = motor.nave.anguloActual * PI_VISTA / 180.0; //convierte su angulo a radianes
-    float direccionX = static_cast<float>(cos(radianes)); //obtiene la direccion horizontal
-    float direccionY = static_cast<float>(sin(radianes)); //obtiene la direccion vertical
-    float perpendicularX = -direccionY; //obtiene la direccion lateral horizontal
-    float perpendicularY = direccionX; //obtiene la direccion lateral vertical
-    float puntaX = x + direccionX * 13.0f; //ubica la punta de la nave
-    float puntaY = y + direccionY * 13.0f; //ubica la punta de la nave
-    float baseX = x - direccionX * 8.0f; //ubica el centro de la base
-    float baseY = y - direccionY * 8.0f; //ubica el centro de la base
-    float izquierdaX = baseX + perpendicularX * 7.0f; //ubica el primer extremo de la base
-    float izquierdaY = baseY + perpendicularY * 7.0f; //ubica el primer extremo de la base
-    float derechaX = baseX - perpendicularX * 7.0f; //ubica el segundo extremo de la base
-    float derechaY = baseY - perpendicularY * 7.0f; //ubica el segundo extremo de la base
+    double radianes = motor.nave.anguloActual * PI_VISTA / 180.0;
+    float direccionX = static_cast<float>(cos(radianes));
+    float direccionY = static_cast<float>(-sin(radianes)); //orienta la nave con el mismo eje vertical del dibujo
+    float perpendicularX = -direccionY;
+    float perpendicularY = direccionX;
+
+    float puntaX = x + direccionX * 13.0f;
+    float puntaY = y + direccionY * 13.0f;
+    float baseX = x - direccionX * 8.0f;
+    float baseY = y - direccionY * 8.0f;
+
+    float izquierdaX = baseX + perpendicularX * 7.0f;
+    float izquierdaY = baseY + perpendicularY * 7.0f;
+    float derechaX = baseX - perpendicularX * 7.0f;
+    float derechaY = baseY - perpendicularY * 7.0f;
 
     al_draw_filled_triangle(puntaX, puntaY, izquierdaX, izquierdaY, derechaX, derechaY, colorJuego(motor.nave.color)); //rellena la nave con su fase
     al_draw_triangle(puntaX, puntaY, izquierdaX, izquierdaY, derechaX, derechaY, al_map_rgb(255, 255, 255), 1.0f); //dibuja el contorno
 }
 
-//dibuja todas las balas que siguen en la lista trasladando sus coordenadas al centro de la ventana
+//dibuja las balas usando la misma orientacion que la nave y los enemigos
 static void dibujarBalas(const VistaAllegro& vista, const Motor& motor) {
-    const NodoBala* actual = motor.balas.cabeza; //obtiene el primer nodo
-    float centroX = static_cast<float>(vista.ancho) / 2.0f; //calcula el centro horizontal
-    float centroY = static_cast<float>(vista.alto) / 2.0f; //calcula el centro vertical
+    const NodoBala* actual = motor.balas.cabeza;
+    float centroX = static_cast<float>(vista.ancho) / 2.0f;
+    float centroY = static_cast<float>(vista.alto) / 2.0f;
 
-    while (actual != nullptr) { //recorre todas las balas
-        float x = centroX + static_cast<float>(actual->dato.x * ESCALA_MUNDO); //calcula la posicion horizontal
-        float y = centroY + static_cast<float>(actual->dato.y * ESCALA_MUNDO); //calcula la posicion vertical
-        al_draw_filled_circle(x, y, 3.0f, colorJuego(actual->dato.color)); //dibuja la bala con su color
-        actual = actual->sig; //avanza al siguiente nodo
+    while (actual != nullptr) {
+        float x = centroX + static_cast<float>(actual->dato.x * ESCALA_MUNDO);
+        float y = centroY - static_cast<float>(actual->dato.y * ESCALA_MUNDO); //proyecta la bala con el mismo eje vertical que la nave
+        al_draw_filled_circle(x, y, 3.0f, colorJuego(actual->dato.color));
+        actual = actual->sig;
     }
 }
 

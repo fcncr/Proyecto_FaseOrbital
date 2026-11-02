@@ -2,8 +2,8 @@
 
 AccionMotor obtenerAccionBot(const Motor& motor) {
     AccionMotor accion; //reune las decisiones que el bot le entregara al motor
-    accion.cambiarAngulo = false; //empieza sin pedir un cambio de destino
-    accion.anguloObjetivo = motor.nave.anguloObjetivo; //conserva el destino anterior mientras no encuentre otro objetivo
+    accion.cambiarAngulo = true; //actualiza el destino para evitar que continue un giro anterior
+    accion.anguloObjetivo = motor.nave.anguloActual; //mantiene el angulo actual si no encuentra un objetivo
     accion.cambiarColor = false; //empieza sin pedir un cambio de fase
     accion.colorNuevo = motor.nave.color; //conserva la fase actual como valor inicial
     accion.solicitarPulso = false; //no pide el pulso hasta comprobar sus condiciones
@@ -27,7 +27,6 @@ AccionMotor obtenerAccionBot(const Motor& motor) {
     }
 
     if (objetivo != nullptr) { //prepara los cambios cuando encontro un enemigo al que apuntar
-        accion.cambiarAngulo = true; //pide mover el destino de la nave hacia ese enemigo
         accion.anguloObjetivo = objetivo->dato.theta; //usa el angulo actual del objetivo
 
         if (objetivo->dato.color != motor.nave.color) { //comprueba si necesita otra fase para acertarle

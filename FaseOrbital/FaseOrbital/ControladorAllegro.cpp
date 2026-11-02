@@ -16,22 +16,22 @@ static AccionMotor crearAccionVaciaAllegro(const Motor& motor) {
     return accion; //devuelve la accion preparada
 }
 
-//calcula la direccion del cursor con respecto al centro de la ventana
+//convierte la posicion del cursor en un angulo antihorario respecto al centro
 static void actualizarAnguloMouse(const ALLEGRO_EVENT& evento, EstadoControles& controles) {
-    if (evento.mouse.display == nullptr) return; //ignora eventos sin una ventana asociada
+    if (evento.mouse.display == nullptr) return;
 
-    double centroX = al_get_display_width(evento.mouse.display) / 2.0; //obtiene el centro horizontal
-    double centroY = al_get_display_height(evento.mouse.display) / 2.0; //obtiene el centro vertical
-    double diferenciaX = static_cast<double>(evento.mouse.x) - centroX; //calcula la distancia horizontal al cursor
-    double diferenciaY = static_cast<double>(evento.mouse.y) - centroY; //calcula la distancia vertical al cursor
+    double centroX = al_get_display_width(evento.mouse.display) / 2.0;
+    double centroY = al_get_display_height(evento.mouse.display) / 2.0;
+    double diferenciaX = static_cast<double>(evento.mouse.x) - centroX;
+    double diferenciaY = centroY - static_cast<double>(evento.mouse.y); //convierte la altura del cursor al eje vertical del motor
 
-    if (diferenciaX == 0.0 && diferenciaY == 0.0) return; //evita un angulo indefinido en el centro
+    if (diferenciaX == 0.0 && diferenciaY == 0.0) return; //conserva la direccion cuando el cursor esta en el centro
 
-    double angulo = atan2(diferenciaY, diferenciaX) * 180.0 / PI_CONTROL; //obtiene la direccion del mouse en grados
-    if (angulo < 0.0) angulo += 360.0; //deja el angulo entre cero y trescientos sesenta
+    double angulo = atan2(diferenciaY, diferenciaX) * 180.0 / PI_CONTROL;
+    if (angulo < 0.0) angulo += 360.0;
 
-    controles.anguloMouse = angulo; //recuerda la direccion elegida por el jugador
-    controles.usarMouse = true; //utiliza el mouse hasta que se presione una flecha
+    controles.anguloMouse = angulo;
+    controles.usarMouse = true;
 }
 
 //limpia las teclas y solicitudes para comenzar un turno nuevo
@@ -135,44 +135,44 @@ void procesarEventoControlador(const ALLEGRO_EVENT& evento, EstadoControles& con
 
 //prepara la accion que el motor aplicara durante un solo tick
 AccionMotor obtenerAccionAllegro(EstadoControles& controles, const Motor& motor) {
-    AccionMotor accion = crearAccionVaciaAllegro(motor); //conserva los valores actuales como punto de partida
+    AccionMotor accion = crearAccionVaciaAllegro(motor);
 
-    if (controles.izquierda && !controles.derecha) { //gira con la flecha izquierda cuando no se presionan ambas
-        accion.cambiarAngulo = true; //solicita cambiar el angulo objetivo
-        accion.anguloObjetivo = motor.nave.anguloActual - 3.0; //gira hacia la izquierda desde el angulo actual
+    if (controles.izquierda && !controles.derecha) {
+        accion.cambiarAngulo = true;
+        accion.anguloObjetivo = motor.nave.anguloActual + 3.0; //gira en sentido antihorario
     }
-    else if (controles.derecha && !controles.izquierda) { //gira con la flecha derecha cuando no se presionan ambas
-        accion.cambiarAngulo = true; //solicita cambiar el angulo objetivo
-        accion.anguloObjetivo = motor.nave.anguloActual + 3.0; //gira hacia la derecha desde el angulo actual
+    else if (controles.derecha && !controles.izquierda) {
+        accion.cambiarAngulo = true;
+        accion.anguloObjetivo = motor.nave.anguloActual - 3.0; //gira en sentido horario
     }
-    else if (controles.usarMouse) { //permite que el cursor controle la direccion si no se estan usando las flechas
-        accion.cambiarAngulo = true; //solicita cambiar el angulo objetivo
-        accion.anguloObjetivo = controles.anguloMouse; //apunta a la ultima posicion del cursor
-    }
-
-    if (controles.cambiarC) { //comprueba si se solicito el color cian
-        accion.cambiarColor = true; //solicita cambiar la fase
-        accion.colorNuevo = 0; //selecciona cian
-    }
-    else if (controles.cambiarM) { //comprueba si se solicito magenta
-        accion.cambiarColor = true; //solicita cambiar la fase
-        accion.colorNuevo = 1; //selecciona magenta
-    }
-    else if (controles.cambiarA) { //comprueba si se solicito ambar
-        accion.cambiarColor = true; //solicita cambiar la fase
-        accion.colorNuevo = 2; //selecciona ambar
+    else if (controles.usarMouse) {
+        accion.cambiarAngulo = true;
+        accion.anguloObjetivo = controles.anguloMouse; //apunta hacia la posicion del cursor
     }
 
-    if (controles.solicitarPulso) { //comprueba si se presiono espacio
-        accion.solicitarPulso = true; //el motor decidira si hay carga suficiente
+    if (controles.cambiarC) {
+        accion.cambiarColor = true;
+        accion.colorNuevo = 0;
+    }
+    else if (controles.cambiarM) {
+        accion.cambiarColor = true;
+        accion.colorNuevo = 1;
+    }
+    else if (controles.cambiarA) {
+        accion.cambiarColor = true;
+        accion.colorNuevo = 2;
     }
 
-    controles.cambiarC = false; //consume el cambio de cian del tick
-    controles.cambiarM = false; //consume el cambio de magenta del tick
-    controles.cambiarA = false; //consume el cambio de ambar del tick
-    controles.solicitarPulso = false; //evita volver a activar el pulso sin otra pulsacion
+    if (controles.solicitarPulso) {
+        accion.solicitarPulso = true;
+    }
 
-    return accion; //entrega las acciones al motor sin modificarlo directamente
+    controles.cambiarC = false; //consume las solicitudes de color de este tick
+    controles.cambiarM = false;
+    controles.cambiarA = false;
+    controles.solicitarPulso = false; //consume la solicitud de pulso
+
+    return accion;
 }
 
 //consume una sola solicitud de pausar o reanudar

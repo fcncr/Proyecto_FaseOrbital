@@ -688,21 +688,27 @@ static bool restaurarArchivoGuardado(const string& ruta, const string& respaldo,
     return rename(respaldo.c_str(), ruta.c_str()) == 0; //devuelve el respaldo a su nombre original
 }
 
-//comprueba si una partida ya esta guardada
+//comprueba si una partida ya aparece en una fila valida del historial
 static bool identificadorGuardadoCSV(const string& ruta, int idPartida) {
-    ifstream entrada(ruta); //abre el historial principal para buscar identificadores
-    string linea; //guarda la fila actual
+    ifstream entrada(ruta); //abre el historial principal para buscar la partida
+    string linea; //guarda cada fila leida del archivo
 
     while (getline(entrada, linea)) { //recorre las filas del historial
-        size_t coma = linea.find(','); //ubica el final del identificador
-        int idActual = 0; //recibe el identificador de la fila
+        if (!linea.empty() && linea.back() == '\r') { //comprueba si la fila termina con retorno de carro
+            linea.pop_back(); //quita el retorno igual que al cargar el historial
+        }
 
-        if (coma != string::npos && convertirEntero(linea.substr(0, coma), idActual) && idActual == idPartida) { //compara el identificador con el de la partida nueva
-            return true; //informa que la partida ya existe
+        RegistroPartida registro; //recibe los datos de una fila valida
+
+        if (!convertirLineaCSV(linea, registro)) { //usa la misma validacion que la carga del historial
+            continue; //omite el encabezado y las filas mal formadas
+        }
+
+        if (registro.idPartida == idPartida) { //compara el identificador de una partida valida
+            return true; //indica que esa partida ya esta guardada
         }
     }
-
-    return false; //indica que no encontro el identificador
+    return false; //indica que ninguna fila valida contiene esa partida
 }
 
 //valida una partida nueva con detalle y prepara ambos archivos antes de reemplazar los anteriores

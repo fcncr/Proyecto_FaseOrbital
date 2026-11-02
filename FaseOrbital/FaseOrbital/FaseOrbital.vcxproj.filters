@@ -254,5 +254,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Makefile">
+      <Filter>juego</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -1,9 +1,17 @@
 #include "HistorialPartidas.h"
 
-void inicializarHistorial(HistorialPartidas& historial) { //establece los valores iniciales sin borrar nodos que ya existieran
-    historial.cabeza = nullptr; //indica que todavia no hay un primer registro
-    historial.cola = nullptr; //indica que tampoco hay un ultimo registro
-    historial.tam = 0; //empieza el contador de registros en cero
+HistorialPartidas::HistorialPartidas() { //inicia los campos sin liberar memoria
+    cabeza = nullptr; //deja la estructura sin primer nodo
+    cola = nullptr; //deja la estructura sin ultimo nodo
+    tam = 0; //inicia el conteo en cero
+}
+
+HistorialPartidas::~HistorialPartidas() { //libera los nodos que pertenecen a esta estructura
+    destruirHistorial(*this); //reutiliza la liberacion de nodos
+}
+
+void inicializarHistorial(HistorialPartidas& historial) { //reinicia la estructura sin perder nodos reservados
+    destruirHistorial(historial); //libera el contenido anterior y deja los campos vacios
 }
 
 void agregarRegistroFinal(HistorialPartidas& historial, const RegistroPartida& registro) { //guarda un nuevo registro al final del historial

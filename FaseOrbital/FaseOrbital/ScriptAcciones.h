@@ -22,9 +22,14 @@ struct ScriptAcciones { //conserva las acciones en el orden en que se leyeron
     NodoAccionScript* cabeza; //primer nodo de la lista
     NodoAccionScript* cola; //ultimo nodo para agregar acciones sin recorrer la lista
     int tam; //cantidad de acciones guardadas
+
+    ScriptAcciones(); //inicia la estructura vacia
+    ScriptAcciones(const ScriptAcciones&) = delete; //los nodos pertenecen a una sola estructura
+    ScriptAcciones& operator=(const ScriptAcciones&) = delete; //se trabaja por referencia para no compartir nodos
+    ~ScriptAcciones(); //libera los nodos al terminar la vida del objeto
 };
 
-//prepara el script para su primer uso sin liberar nodos de una lista anterior
+//libera las acciones anteriores y deja el script vacio
 void inicializarScriptAcciones(ScriptAcciones& script);
 
 //libera todas las acciones y deja el script vacio para poder reutilizarlo

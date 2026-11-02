@@ -12,26 +12,33 @@ void inicializarPartida(Partida& partida, uint32_t semillaPartida, int limiteOle
     partida.finalizada = false; //deja la partida disponible para jugar
 }
 
+//registra un jugador si hay espacio y su alias no pertenece a otro participante
 bool agregarJugadorPartida(Partida& partida, const string& alias, bool esBot) {
     if (partida.cantidadJugadores >= 6) { //comprueba si ya se ocuparon los seis espacios disponibles
         return false; //indica que no cabe otro participante
     }
 
-    Jugador& jugador = partida.jugadores[partida.cantidadJugadores]; //trabaja directamente sobre el siguiente espacio libre del arreglo
-    jugador.alias = alias; //guarda el nombre con el que se identificara al participante
-    jugador.esBot = esBot; //indica si sus acciones las decidira el programa
-    jugador.vidaNucleo = 100; //le asigna la vida inicial del nucleo
-    jugador.puntaje = 0; //empieza sin puntos acumulados
-    jugador.combo = 0; //empieza con el combo en cero
-    jugador.cargaPulso = 0; //empieza sin carga para activar el pulso
-    jugador.oleadaAlcanzada = 0; //todavia no ha iniciado ninguna oleada
-    jugador.eliminado = false; //lo registra como participante activo
-    inicializarMetricasJugador(jugador.metricas); //reinicia sus estadisticas una sola vez al registrarlo
+    for (int i = 0; i < partida.cantidadJugadores; i++) { //recorre los jugadores registrados en esta partida
+        if (partida.jugadores[i].alias == alias) { //comprueba si alguno ya tiene el mismo alias
+            return false; //rechaza el nombre sin modificar los jugadores ni la ronda
+        }
+    }
 
-    agregarJugador(partida.ronda, &jugador); //agrega a la ronda un nodo que apunta al jugador del arreglo
-    partida.cantidadJugadores++; //cuenta al nuevo participante aunque despues pueda ser eliminado
+    Jugador& jugador = partida.jugadores[partida.cantidadJugadores]; //obtiene el siguiente espacio disponible del arreglo
+    jugador.alias = alias; //guarda el alias del nuevo participante
+    jugador.esBot = esBot; //indica si el programa controlara sus acciones
+    jugador.vidaNucleo = 100; //asigna la vida inicial del nucleo
+    jugador.puntaje = 0; //inicia el puntaje en cero
+    jugador.combo = 0; //inicia el combo en cero
+    jugador.cargaPulso = 0; //inicia la carga del pulso en cero
+    jugador.oleadaAlcanzada = 0; //indica que todavia no ha jugado ninguna oleada
+    jugador.eliminado = false; //registra al jugador como participante activo
+    inicializarMetricasJugador(jugador.metricas); //prepara sus estadisticas iniciales
 
-    return true; //confirma que el jugador quedo registrado y enlazado en la ronda
+    agregarJugador(partida.ronda, &jugador); //agrega su direccion a la lista circular de turnos
+    partida.cantidadJugadores++; //cuenta al jugador que acaba de registrarse
+
+    return true; //confirma que el registro termino correctamente
 }
 
 Jugador* verJugadorPartida(Partida& partida, int indice) {

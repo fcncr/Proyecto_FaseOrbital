@@ -1,23 +1,28 @@
-#ifndef LISTA_BALAS_H //Evita declarar estas estructuras y funciones mas de una vez
-#define LISTA_BALAS_H //Marca esta cabecera como incluida
+#ifndef LISTA_BALAS_H
+#define LISTA_BALAS_H
 
-#include "ModelosCombate.h" //Incluye la estructura que guarda los datos de cada bala
+#include "ModelosCombate.h"
 
-struct NodoBala { //Agrupa una bala y el enlace al siguiente nodo
-    Bala dato; //Guarda la posicion velocidad color y duenio de la bala
-    NodoBala* sig; //Apunta al siguiente nodo o a nullptr si es el ultimo
+struct NodoBala { //agrupa una bala y el enlace al siguiente nodo
+    Bala dato; //guarda la posicion velocidad color y duenio de la bala
+    NodoBala* sig; //apunta al siguiente nodo o a nullptr si es el ultimo
 };
 
-struct ListaBalas { //Mantiene el inicio y la cantidad de nodos de la lista
-    NodoBala* cabeza; //Apunta al primer nodo o a nullptr si la lista esta vacia
-    int tam; //Guarda la cantidad de balas almacenadas
+struct ListaBalas { //mantiene el inicio y la cantidad de nodos de la lista
+    NodoBala* cabeza; //apunta al primer nodo o a nullptr si la lista esta vacia
+    int tam; //guarda la cantidad de balas almacenadas
+
+    ListaBalas(); //crea la lista vacia con sus campos inicializados
+    ~ListaBalas(); //libera los nodos propios al terminar la vida del objeto
+    ListaBalas(const ListaBalas& otra) = delete; //se usa por referencia porque sus nodos tienen un unico propietario
+    ListaBalas& operator=(const ListaBalas& otra) = delete; //evita compartir nodos mediante una asignacion
 };
 
-void inicializarListaBalas(ListaBalas& lista); //Establece los valores iniciales sin liberar nodos previos
-void insertarInicio(ListaBalas& lista, const Bala& bala); //Agrega una copia de la bala al principio de la lista
-int eliminarBalasSi(ListaBalas& lista, bool (*predicado)(const Bala&)); //Elimina las balas que cumplen la condicion recibida y devuelve su cantidad
-int tamanoListaBalas(const ListaBalas& lista); //Devuelve la cantidad de balas almacenadas
-bool listaBalasVacia(const ListaBalas& lista); //Indica si la lista tiene cero balas
-void destruirListaBalas(ListaBalas& lista); //Libera todos los nodos y deja la lista vacia
+void inicializarListaBalas(ListaBalas& lista); //libera los nodos previos y deja la lista vacia
+void insertarInicio(ListaBalas& lista, const Bala& bala); //agrega una copia de la bala al principio de la lista
+int eliminarBalasSi(ListaBalas& lista, bool (*predicado)(const Bala&)); //elimina las balas que cumplen la condicion recibida y devuelve su cantidad
+int tamanoListaBalas(const ListaBalas& lista); //devuelve la cantidad de balas almacenadas
+bool listaBalasVacia(const ListaBalas& lista); //indica si la lista tiene cero balas
+void destruirListaBalas(ListaBalas& lista); //libera todos los nodos y deja la lista vacia
 
 #endif

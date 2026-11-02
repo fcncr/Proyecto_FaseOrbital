@@ -1,5 +1,5 @@
 #include "ArgumentosCLI.h"
-
+#include <iostream> //permite mostrar el mensaje del alias repetido
 #include <sstream>
 #include <limits>
 
@@ -104,50 +104,55 @@ static bool convertirOleadas(const string& texto, int& valor) {
     return true; //confirma que el numero de oleadas es valido
 }
 
-//separa de uno a seis alias por comas y recorta sus extremos sin comprobar si se repiten
-//si encuentra un alias invalido devuelve falso y puede dejar los anteriores en la configuracion
+//separa los alias por comas recorta sus extremos y rechaza nombres repetidos
 static bool parsearListaJugadores(const string& texto, ConfiguracionPrograma& config) {
     config.cantidadJugadores = 0; //empieza a llenar el arreglo desde la primera posicion
 
     if (texto.empty()) { //comprueba si la lista completa esta vacia
-        return false; //exige al menos un jugador
+        return false; //exige al menos un participante
     }
 
-    size_t inicio = 0; //marca donde comienza el alias que se esta leyendo
+    size_t inicio = 0; //indica donde comienza el alias que se esta leyendo
 
-    while (inicio <= texto.size()) { //revisa tambien el posible campo vacio despues de una coma final
-        size_t coma = texto.find(',', inicio); //busca el separador que termina este alias
+    while (inicio <= texto.size()) { //recorre la lista incluyendo un posible campo vacio al final
+        size_t coma = texto.find(',', inicio); //busca el separador del siguiente alias
+        string alias; //guarda temporalmente el nombre del participante
 
-        string alias; //recibira el texto de un solo participante
-
-        if (coma == string::npos) { //detecta el ultimo alias de la lista
-            alias = texto.substr(inicio); //toma el texto que queda hasta el final
+        if (coma == string::npos) { //comprueba si este es el ultimo alias
+            alias = texto.substr(inicio); //toma el texto restante
         }
-        else { //atiende un alias seguido por otra coma
-            alias = texto.substr(inicio, coma - inicio); //extrae solamente el texto anterior al separador
-        }
-
-        alias = recortarTexto(alias); //quita los espacios permitidos de ambos extremos del alias
-
-        if (alias.empty()) { //detecta campos vacios o formados solo por espacios
-            return false; //rechaza listas con participantes sin nombre
+        else { //atiende un alias seguido por otro participante
+            alias = texto.substr(inicio, coma - inicio); //extrae el texto anterior a la coma
         }
 
-        if (config.cantidadJugadores >= 6) { //comprueba si ya lleno las seis posiciones disponibles
-            return false; //evita guardar un septimo jugador fuera del arreglo
+        alias = recortarTexto(alias); //elimina los espacios de los extremos
+
+        if (alias.empty()) { //comprueba si el nombre quedo vacio
+            return false; //rechaza participantes sin alias
         }
 
-        config.jugadores[config.cantidadJugadores] = alias; //guarda el participante conservando el orden del comando
-        config.cantidadJugadores++; //cuenta el alias que acaba de agregar
-
-        if (coma == string::npos) { //comprueba si ya proceso el ultimo participante
-            break; //termina el recorrido de la lista
+        if (config.cantidadJugadores >= 6) { //comprueba si ya se ocuparon los seis espacios
+            return false; //evita agregar un septimo participante
         }
 
-        inicio = coma + 1; //empieza el siguiente alias despues del separador
+        for (int i = 0; i < config.cantidadJugadores; i++) { //recorre los alias que ya fueron aceptados
+            if (config.jugadores[i] == alias) { //comprueba si el nombre ya esta registrado
+                cerr << "Alias repetido en la partida: " << alias << '\n'; //muestra el alias que impide continuar
+                return false; //rechaza la lista de participantes
+            }
+        }
+
+        config.jugadores[config.cantidadJugadores] = alias; //guarda el alias respetando el orden recibido
+        config.cantidadJugadores++; //cuenta al participante aceptado
+
+        if (coma == string::npos) { //comprueba si ya se proceso el ultimo alias
+            break; //termina el recorrido
+        }
+
+        inicio = coma + 1; //continua despues del separador
     }
 
-    return config.cantidadJugadores > 0; //confirma que se guardo al menos un participante
+    return config.cantidadJugadores > 0; //confirma que se registro al menos un participante
 }
 
 //restablece todos los campos para que una lectura nueva no conserve opciones del comando anterior

@@ -15,6 +15,5 @@ int main(int argc, char* argv[]) {
 
         return 1; //termina con error sin ejecutar ningun modo
     }
-
     return ejecutarAplicacion(config); //devuelve al sistema el resultado del modo seleccionado
 }

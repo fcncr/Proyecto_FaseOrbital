@@ -15,6 +15,16 @@ static bool aliasValido(const string& alias) {
     return !alias.empty(); //acepta cualquier cadena que no este vacia
 }
 
+//comprueba si el alias actual coincide con alguno ya confirmado
+static bool aliasRepetido(const RegistroGrafico& registro, int indice) {
+    for (int i = 0; i < indice; i++) { //revisa solamente los jugadores anteriores
+        if (registro.aliasJugadores[i] == registro.aliasJugadores[indice]) { //compara los nombres completos
+            return true; //indica que el alias ya pertenece a otro participante
+        }
+    }
+    return false; //indica que el alias todavia no esta registrado
+}
+
 //limpia el dibujo anterior y prepara el fondo oscuro con el marco comun de las pantallas
 static void dibujarFondoInterfaz(const VistaAllegro& vista) {
     al_clear_to_color(al_map_rgb(10, 12, 22)); //borra el contenido anterior con el color de fondo
@@ -344,106 +354,108 @@ OpcionMenuPrincipal ejecutarMenuPrincipal(VistaAllegro& vista, EstadoInterfaz& e
     return MENU_SALIR; //mantiene la salida si la aplicacion ya tenia solicitado el cierre
 }
 
-//solicita de uno a seis jugadores y luego sus alias usando letras numeros y guion bajo hasta quince caracteres
-//devuelve verdadero al confirmar todos los alias no vacios y falso si se cancela o se cierra la ventana
+//recibe la cantidad de jugadores y sus alias sin permitir nombres repetidos
 bool ejecutarRegistroJugadores(VistaAllegro& vista, EstadoInterfaz& estado, RegistroGrafico& registro, bool& cerrarAplicacion) {
-    estado.pantallaActual = PANTALLA_REGISTRO; //identifica la pantalla de ingreso de jugadores
-    estado.jugadorRegistroActual = 0; //empieza por el primer participante
-    estado.mensaje.clear(); //elimina los avisos de un registro anterior
+    estado.pantallaActual = PANTALLA_REGISTRO; //identifica la pantalla de registro
+    estado.jugadorRegistroActual = 0; //comienza con el primer participante
+    estado.mensaje.clear(); //elimina cualquier aviso anterior
 
-    registro.cantidadJugadores = 1; //propone un jugador como cantidad inicial
+    registro.cantidadJugadores = 1; //propone un participante como cantidad inicial
 
-    for (int i = 0; i < 6; i++) { //recorre todos los espacios disponibles para alias
-        registro.aliasJugadores[i].clear(); //borra los nombres que pudieran quedar de otra partida
+    for (int i = 0; i < 6; i++) { //recorre todos los espacios disponibles
+        registro.aliasJugadores[i].clear(); //borra los nombres de un registro anterior
     }
 
-    bool seleccionandoCantidad = true; //separa la eleccion de cantidad de la escritura de alias
+    bool seleccionandoCantidad = true; //indica que primero se elegira la cantidad de jugadores
 
-    al_flush_event_queue(vista.colaEventos); //descarta entradas que pertenecian a la pantalla anterior
-    dibujarRegistroCantidad(vista, registro.cantidadJugadores); //muestra primero cuantas personas o bots se van a registrar
+    al_flush_event_queue(vista.colaEventos); //descarta los eventos de la pantalla anterior
+    dibujarRegistroCantidad(vista, registro.cantidadJugadores); //muestra la seleccion de cantidad
 
-    while (!cerrarAplicacion) { //continua el registro mientras la aplicacion siga abierta
-        ALLEGRO_EVENT evento; //recibira una pulsacion o un evento de ventana
-        al_wait_for_event(vista.colaEventos, &evento); //espera la siguiente entrada del usuario
+    while (!cerrarAplicacion) { //mantiene el registro mientras la aplicacion siga abierta
+        ALLEGRO_EVENT evento; //recibe el siguiente evento de entrada
+        al_wait_for_event(vista.colaEventos, &evento); //espera una accion del usuario
 
-        if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) { //detecta que se cerro la ventana durante el registro
-            cerrarAplicacion = true; //propaga la solicitud de terminar la aplicacion
-            return false; //no confirma un registro interrumpido
+        if (evento.type == ALLEGRO_EVENT_DISPLAY_CLOSE) { //detecta el cierre de la ventana
+            cerrarAplicacion = true; //solicita terminar la aplicacion
+            return false; //cancela el registro
         }
 
-        if (seleccionandoCantidad) { //atiende primero la cantidad de participantes
-            if (evento.type == ALLEGRO_EVENT_KEY_DOWN) { //usa pulsaciones de teclas para elegir y confirmar la cantidad
-                if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT) { //solicita un participante menos
-                    if (registro.cantidadJugadores > 1) { //conserva al menos un jugador
-                        registro.cantidadJugadores--; //reduce la cantidad dentro del limite permitido
+        if (seleccionandoCantidad) { //atiende la seleccion del numero de participantes
+            if (evento.type == ALLEGRO_EVENT_KEY_DOWN) { //revisa las teclas utilizadas para elegir la cantidad
+                if (evento.keyboard.keycode == ALLEGRO_KEY_LEFT) { //solicita reducir la cantidad
+                    if (registro.cantidadJugadores > 1) { //mantiene al menos un participante
+                        registro.cantidadJugadores--; //reduce la cantidad seleccionada
                     }
                 }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_RIGHT) { //solicita un participante mas
-                    if (registro.cantidadJugadores < 6) { //respeta los seis espacios disponibles
-                        registro.cantidadJugadores++; //aumenta la cantidad sin salir del arreglo
+                else if (evento.keyboard.keycode == ALLEGRO_KEY_RIGHT) { //solicita aumentar la cantidad
+                    if (registro.cantidadJugadores < 6) { //respeta el limite de seis participantes
+                        registro.cantidadJugadores++; //aumenta la cantidad seleccionada
                     }
                 }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER) { //confirma cuantos alias se deben ingresar
-                    seleccionandoCantidad = false; //pasa a la etapa de escritura de nombres
-                    estado.jugadorRegistroActual = 0; //selecciona al primer jugador que necesita un alias
-                    estado.mensaje.clear(); //deja la nueva pantalla sin avisos
+                else if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER) { //confirma la cantidad de participantes
+                    seleccionandoCantidad = false; //pasa al ingreso de alias
+                    estado.jugadorRegistroActual = 0; //selecciona el primer alias
+                    estado.mensaje.clear(); //elimina los avisos pendientes
 
                     dibujarRegistroAlias(vista, estado, registro); //muestra el campo del primer participante
-                    continue; //espera otro evento antes de procesar la entrada de texto
+                    continue; //espera otro evento para comenzar a escribir
                 }
-                else if (evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE) { //cancela desde la seleccion de cantidad
-                    return false; //devuelve el control al menu sin confirmar jugadores
+                else if (evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE) { //detecta la cancelacion del registro
+                    return false; //regresa al menu
                 }
 
-                dibujarRegistroCantidad(vista, registro.cantidadJugadores); //refleja la cantidad seleccionada despues de atender la tecla
+                dibujarRegistroCantidad(vista, registro.cantidadJugadores); //actualiza la cantidad mostrada
             }
 
-            continue; //evita tratar estos eventos como escritura de alias
+            continue; //evita procesar estos eventos como escritura de alias
         }
 
-        if (evento.type == ALLEGRO_EVENT_KEY_CHAR) { //usa los eventos de texto para escribir borrar y confirmar un alias
-            int indice = estado.jugadorRegistroActual; //ubica al participante que esta completando su nombre
-            string& alias = registro.aliasJugadores[indice]; //modifica directamente el nombre guardado en el registro
+        if (evento.type == ALLEGRO_EVENT_KEY_CHAR) { //atiende la escritura y confirmacion del nombre
+            int indice = estado.jugadorRegistroActual; //obtiene la posicion del participante actual
+            string& alias = registro.aliasJugadores[indice]; //trabaja directamente sobre su alias
 
-            if (evento.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) { //atiende la solicitud de borrar el ultimo caracter
-                if (!alias.empty()) { //comprueba que haya un caracter para quitar
-                    alias.pop_back(); //borra el final del alias
+            if (evento.keyboard.keycode == ALLEGRO_KEY_BACKSPACE) { //detecta la solicitud de borrar
+                if (!alias.empty()) { //comprueba que exista un caracter para quitar
+                    alias.pop_back(); //elimina el ultimo caracter
                 }
 
                 estado.mensaje.clear(); //retira el aviso despues de editar el nombre
             }
             else if (evento.keyboard.keycode == ALLEGRO_KEY_ENTER) { //intenta confirmar el alias actual
-                if (!aliasValido(alias)) { //comprueba si el participante sigue sin nombre
-                    estado.mensaje = "El alias no puede estar vacio."; //explica por que no puede avanzar al siguiente jugador
+                if (!aliasValido(alias)) { //comprueba si el nombre esta vacio
+                    estado.mensaje = "El alias no puede estar vacio."; //explica por que no puede continuar
                 }
-                else { //continua cuando el alias tiene al menos un caracter
-                    estado.mensaje.clear(); //quita cualquier aviso anterior del campo
+                else if (aliasRepetido(registro, indice)) { //comprueba si otro participante ya utiliza ese nombre
+                    estado.mensaje = "Ese alias ya esta registrado."; //muestra el aviso y conserva el participante actual
+                }
+                else { //acepta el alias cuando tiene contenido y no esta repetido
+                    estado.mensaje.clear(); //elimina cualquier aviso anterior
 
-                    if (indice + 1 >= registro.cantidadJugadores) { //detecta que este era el ultimo alias pendiente
-                        return true; //confirma que todos los participantes quedaron registrados
+                    if (indice + 1 >= registro.cantidadJugadores) { //comprueba si se completo el ultimo participante
+                        return true; //confirma que todos los jugadores quedaron registrados
                     }
 
-                    estado.jugadorRegistroActual++; //pasa al nombre del siguiente participante
+                    estado.jugadorRegistroActual++; //avanza al siguiente participante
                 }
             }
-            else { //revisa los caracteres de texto que no son borrar ni confirmar
-                int caracter = evento.keyboard.unichar; //obtiene el caracter producido por la entrada de texto
-                bool permitido = (caracter >= 'A' && caracter <= 'Z') || (caracter >= 'a' && caracter <= 'z') || (caracter >= '0' && caracter <= '9') || caracter == '_'; //acepta solo letras ascii numeros y guion bajo
+            else { //revisa los caracteres ingresados por el usuario
+                int caracter = evento.keyboard.unichar; //obtiene el caracter recibido
+                bool permitido = (caracter >= 'A' && caracter <= 'Z') || (caracter >= 'a' && caracter <= 'z') || (caracter >= '0' && caracter <= '9') || caracter == '_'; //acepta letras numeros y guion bajo
 
-                if (permitido && alias.size() < 15) { //comprueba el caracter y el limite de longitud del alias
-                    alias += static_cast<char>(caracter); //agrega el caracter permitido al final del nombre
-                    estado.mensaje.clear(); //retira el aviso al recibir texto valido
+                if (permitido && alias.size() < 15) { //comprueba el caracter y la longitud permitida
+                    alias += static_cast<char>(caracter); //agrega el caracter al nombre
+                    estado.mensaje.clear(); //retira el aviso despues de editar
                 }
             }
 
-            dibujarRegistroAlias(vista, estado, registro); //actualiza el nombre el participante y el mensaje que correspondan
+            dibujarRegistroAlias(vista, estado, registro); //actualiza el nombre y el mensaje de validacion
         }
-        else if (evento.type == ALLEGRO_EVENT_KEY_DOWN && evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE) { //reconoce escape como una pulsacion para cancelar la escritura
-            return false; //cancela el registro sin solicitar el cierre de la aplicacion
+        else if (evento.type == ALLEGRO_EVENT_KEY_DOWN && evento.keyboard.keycode == ALLEGRO_KEY_ESCAPE) { //detecta la cancelacion durante el ingreso de alias
+            return false; //regresa al menu sin confirmar el registro
         }
     }
 
-    return false; //no confirma el registro si la aplicacion ya tenia solicitado el cierre
+    return false; //cancela si se solicito cerrar la aplicacion
 }
 
 //muestra el jugador y la oleada que siguen y espera enter para devolver el control al inicio del turno
