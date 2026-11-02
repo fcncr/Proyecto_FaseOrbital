@@ -8,7 +8,7 @@
 #include <cstdio>
 
 static RegistroPartida crearRegistroP13(int idPartida, uint32_t semilla, const std::string& modo, const std::string& jugador, bool esBot, int posicion, int puntaje, int oleada, int disparos, int correctos, int erroneos) {
-    RegistroPartida registro;
+    RegistroPartida registro{}; //{} inicializa los campos 
 
     registro.idPartida = idPartida;
     registro.semilla = semilla;

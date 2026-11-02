@@ -403,6 +403,154 @@ int ejecutarAplicacionGrafica(const ConfiguracionPrograma& config) {
     return resultado ? 0 : 1;
 }
 
+static double calcularPorcentajeReporteLotes(long long cantidad, long long total) {
+    if (total <= 0) {
+        return 0.0;
+    }
+
+    return 100.0 * static_cast<double>(cantidad) / static_cast<double>(total);
+}
+
+static void imprimirReporteDetalladoLotes(const Partida& partida, const HistorialPartidas& resultados, std::ostream& salida) {
+    std::ios::fmtflags formatoOriginal = salida.flags();
+    std::streamsize precisionOriginal = salida.precision();
+
+    salida << std::fixed << std::setprecision(2);
+
+    salida << '\n';
+    salida << "========================================" << '\n';
+    salida << "       REPORTE DEL MODO POR LOTES        " << '\n';
+    salida << "========================================" << '\n';
+
+    const NodoRegistroPartida* actual = resultados.cabeza;
+
+    if (actual == nullptr) {
+        salida << "No hay resultados para mostrar." << '\n';
+    }
+
+    while (actual != nullptr) {
+        const RegistroPartida& registro = actual->dato;
+
+        int bajasPorColor[3] = { 0, 0, 0 };
+
+        const NodoEvento* eventoActual = partida.bitacora.cabeza;
+
+        while (eventoActual != nullptr) {
+            const Evento& evento = eventoActual->dato;
+
+            if (evento.jugador == registro.jugador && evento.tipoEvento == BAJA) {
+                if (evento.color >= 0 && evento.color < 3) {
+                    bajasPorColor[evento.color]++;
+                }
+            }
+
+            eventoActual = eventoActual->sig;
+        }
+
+        int impactosTotales = registro.correctos + registro.erroneos;
+
+        int bajasTotales =
+            registro.bajasDron +
+            registro.bajasGirador +
+            registro.bajasDivisor +
+            registro.bajasMini +
+            registro.bajasTanque +
+            registro.bajasCamaleon;
+
+        salida << '\n';
+        salida << "----------------------------------------" << '\n';
+        salida << "JUGADOR: " << registro.jugador << '\n';
+        salida << "----------------------------------------" << '\n';
+
+        salida << "ID de partida: " << registro.idPartida << '\n';
+        salida << "Semilla: " << registro.semilla << '\n';
+        salida << "Modo: " << registro.modo << '\n';
+        salida << "Es bot: " << (registro.esBot ? "Si" : "No") << '\n';
+        salida << "Posicion final: " << registro.posicion << '\n';
+
+        salida << '\n';
+        salida << "=== RENDIMIENTO GENERAL ===" << '\n';
+
+        salida << "Puntaje: " << registro.puntaje << '\n';
+        salida << "Oleada alcanzada: " << registro.oleada << '\n';
+        salida << "Disparos: " << registro.disparos << '\n';
+        salida << "Impactos correctos: " << registro.correctos << '\n';
+        salida << "Impactos erroneos: " << registro.erroneos << '\n';
+
+        salida << "Precision de color: "
+            << calcularPorcentajeReporteLotes(registro.correctos, impactosTotales)
+            << "%" << '\n';
+
+        salida << "Eficiencia de disparo: "
+            << calcularPorcentajeReporteLotes(registro.correctos, registro.disparos)
+            << "%" << '\n';
+
+        salida << "Combo maximo: " << registro.comboMax << '\n';
+        salida << "Pulsos utilizados: " << registro.pulsos << '\n';
+        salida << "Dano total recibido: " << registro.danoTotal << '\n';
+        salida << "Ticks sobrevividos: " << registro.ticks << '\n';
+
+        salida << '\n';
+        salida << "=== BAJAS POR TIPO DE ENEMIGO ===" << '\n';
+
+        salida << "Dron: " << registro.bajasDron << '\n';
+        salida << "Girador: " << registro.bajasGirador << '\n';
+        salida << "Divisor: " << registro.bajasDivisor << '\n';
+        salida << "Mini: " << registro.bajasMini << '\n';
+        salida << "Tanque: " << registro.bajasTanque << '\n';
+        salida << "Camaleon: " << registro.bajasCamaleon << '\n';
+        salida << "Total de bajas: " << bajasTotales << '\n';
+
+        salida << '\n';
+        salida << "=== BAJAS POR COLOR ===" << '\n';
+
+        salida << "Cian: " << bajasPorColor[0] << '\n';
+        salida << "Magenta: " << bajasPorColor[1] << '\n';
+        salida << "Ambar: " << bajasPorColor[2] << '\n';
+
+        if (registro.detalleDisponible) {
+            salida << '\n';
+            salida << "=== PRECISION POR COLOR ===" << '\n';
+
+            salida << "Cian: "
+                << calcularPorcentajeReporteLotes(registro.correctosC, registro.correctosC + registro.erroneosC)
+                << "%" << '\n';
+
+            salida << "Magenta: "
+                << calcularPorcentajeReporteLotes(registro.correctosM, registro.correctosM + registro.erroneosM)
+                << "%" << '\n';
+
+            salida << "Ambar: "
+                << calcularPorcentajeReporteLotes(registro.correctosA, registro.correctosA + registro.erroneosA)
+                << "%" << '\n';
+
+            salida << '\n';
+            salida << "=== DANO RECIBIDO POR TIPO ===" << '\n';
+
+            salida << "Dron: " << registro.danoDron << '\n';
+            salida << "Girador: " << registro.danoGirador << '\n';
+            salida << "Divisor: " << registro.danoDivisor << '\n';
+            salida << "Mini: " << registro.danoMini << '\n';
+            salida << "Tanque: " << registro.danoTanque << '\n';
+            salida << "Camaleon: " << registro.danoCamaleon << '\n';
+        }
+        else {
+            salida << '\n';
+            salida << "Detalle por color y dano por tipo: no disponible." << '\n';
+        }
+
+        actual = actual->sig;
+    }
+
+    salida << '\n';
+    salida << "========================================" << '\n';
+    salida << "            FIN DEL REPORTE             " << '\n';
+    salida << "========================================" << '\n';
+
+    salida.flags(formatoOriginal);
+    salida.precision(precisionOriginal);
+}
+
 int ejecutarAplicacionLotes(const ConfiguracionPrograma& config) {
     Partida partida;
     ScriptAcciones script;
@@ -504,6 +652,38 @@ int ejecutarAplicacionLotes(const ConfiguracionPrograma& config) {
     }
 
     mostrarResultadoPartida(partida);
+
+    imprimirReporteDetalladoLotes(partida, nuevosResultados, cout);
+
+    cout << '\n';
+    cout << "========================================" << '\n';
+    cout << "       LINEA DE TIEMPO POR JUGADOR       " << '\n';
+    cout << "========================================" << '\n';
+
+    for (int i = 0; i < partida.cantidadJugadores; i++) {
+        const Jugador& jugador = partida.jugadores[i];
+
+        cout << '\n';
+        cout << "----------------------------------------" << '\n';
+
+        if (jugador.oleadaAlcanzada <= 0) {
+            cout << "Jugador: " << jugador.alias << '\n';
+            cout << "Sin oleadas jugadas." << '\n';
+        }
+        else {
+            imprimirLineaTiempoJugador(
+                partida.bitacora,
+                jugador.alias,
+                jugador.oleadaAlcanzada,
+                cout
+            );
+        }
+
+        cout << "----------------------------------------" << '\n';
+    }
+
+    cout << '\n';
+    cout << "========== FIN LINEA DE TIEMPO =========" << '\n';
 
     destruirPartida(partida);
     destruirScriptAcciones(script);

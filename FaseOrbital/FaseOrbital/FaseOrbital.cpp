@@ -3,14 +3,16 @@
 #include "ArgumentosCLI.h"
 #include "Aplicacion.h"
 
+using namespace std;
+
 int main(int argc, char* argv[]) {
     ConfiguracionPrograma config;
 
     if (!parsearArgumentos(argc, argv, config)) {
-        std::cerr << "Argumentos invalidos." << '\n';
-        std::cerr << '\n';
+        cerr << "Argumentos invalidos." << '\n';
+        cerr << '\n';
 
-        imprimirUso(std::cerr);
+        imprimirUso(cerr);
 
         return 1;
     }

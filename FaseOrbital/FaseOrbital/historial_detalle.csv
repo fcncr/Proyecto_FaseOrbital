@@ -1,2 +1,10 @@
 id_partida,jugador,posicion,correctos_c,erroneos_c,correctos_m,erroneos_m,correctos_a,erroneos_a,dano_dron,dano_girador,dano_divisor,dano_mini,dano_tanque,dano_camaleon
 3,Kendall,1,2,2,2,0,1,0,40,0,0,0,0,0
+4,BOT1,1,32,5,15,3,23,4,24,0,0,84,0,0
+4,BOT2,1,32,5,15,3,23,4,24,0,0,84,0,0
+4,BOT3,1,32,5,15,3,23,4,24,0,0,84,0,0
+4,BOT4,1,32,5,15,3,23,4,24,0,0,84,0,0
+5,BOT1,1,15,2,11,1,10,0,0,0,0,0,0,0
+5,BOT2,1,15,2,11,1,10,0,0,0,0,0,0,0
+5,BOT3,1,15,2,11,1,10,0,0,0,0,0,0,0
+5,BOT4,1,15,2,11,1,10,0,0,0,0,0,0,0
