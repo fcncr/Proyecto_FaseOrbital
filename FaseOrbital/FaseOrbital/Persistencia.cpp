@@ -5,13 +5,9 @@
 #include <cstdint>
 #include <cstdio>
 
-using namespace std;
+static const char* ENCABEZADO_HISTORIAL = "id_partida,semilla,modo,jugador,es_bot,posicion,puntaje,oleada,disparos,correctos,erroneos,combo_max,pulsos,dano_total,ticks,bajas_dron,bajas_girador,bajas_divisor,bajas_mini,bajas_tanque,bajas_camaleon"; //mantiene las veintiuna columnas oficiales del historial principal
 
-//mantiene las columnas oficiales del historial principal
-static const char* ENCABEZADO_HISTORIAL = "id_partida,semilla,modo,jugador,es_bot,posicion,puntaje,oleada,disparos,correctos,erroneos,combo_max,pulsos,dano_total,ticks,bajas_dron,bajas_girador,bajas_divisor,bajas_mini,bajas_tanque,bajas_camaleon";
-
-//guarda las columnas adicionales sin cambiar el formato oficial
-static const char* ENCABEZADO_DETALLE_HISTORIAL = "id_partida,jugador,posicion,correctos_c,erroneos_c,correctos_m,erroneos_m,correctos_a,erroneos_a,dano_dron,dano_girador,dano_divisor,dano_mini,dano_tanque,dano_camaleon";
+static const char* ENCABEZADO_DETALLE_HISTORIAL = "id_partida,jugador,posicion,correctos_c,erroneos_c,correctos_m,erroneos_m,correctos_a,erroneos_a,dano_dron,dano_girador,dano_divisor,dano_mini,dano_tanque,dano_camaleon"; //guarda las quince columnas adicionales sin cambiar el formato principal
 
 //devuelve el encabezado obligatorio del archivo principal
 const char* encabezadoHistorialCSV() {
@@ -60,7 +56,7 @@ static string escaparCampoCSV(const string& texto) {
         if (caracter == '"') { //comprueba si encontro una comilla
             resultado += "\"\""; //duplica la comilla para que sea valida en csv
         }
-        else {
+        else { //conserva los caracteres que no necesitan duplicarse
             resultado += caracter; //copia el caracter normalmente
         }
     }
@@ -76,32 +72,46 @@ static bool escribirRegistroCSV(ostream& salida, const RegistroPartida& registro
         return false; //evita escribir una fila con saltos de linea
     }
 
-    salida << registro.idPartida << ',' //escribe el identificador
-        << registro.semilla << ',' //escribe la semilla
-        << escaparCampoCSV(registro.modo) << ',' //escribe el modo
-        << escaparCampoCSV(registro.jugador) << ',' //escribe el alias
-        << (registro.esBot ? 1 : 0) << ',' //escribe el indicador de bot
-        << registro.posicion << ',' //escribe la posicion
-        << registro.puntaje << ',' //escribe el puntaje
-        << registro.oleada << ',' //escribe la oleada
-        << registro.disparos << ',' //escribe los disparos
-        << registro.correctos << ',' //escribe los impactos correctos
-        << registro.erroneos << ',' //escribe los impactos erroneos
-        << registro.comboMax << ',' //escribe el combo maximo
-        << registro.pulsos << ',' //escribe los pulsos
-        << registro.danoTotal << ',' //escribe el dano total
-        << registro.ticks << ',' //escribe los ticks
-        << registro.bajasDron << ',' //escribe las bajas de drones
-        << registro.bajasGirador << ',' //escribe las bajas de giradores
-        << registro.bajasDivisor << ',' //escribe las bajas de divisores
-        << registro.bajasMini << ',' //escribe las bajas de minis
-        << registro.bajasTanque << ',' //escribe las bajas de tanques
-        << registro.bajasCamaleon << '\n'; //termina la fila con las bajas de camaleones
+    salida << registro.idPartida << ','; //relaciona esta fila con los demas jugadores de la misma partida
+    salida << registro.semilla << ','; //conserva el valor que permite reproducir las oleadas
+    salida << escaparCampoCSV(registro.modo) << ','; //protege las comas y comillas que pueda tener el modo
+    salida << escaparCampoCSV(registro.jugador) << ','; //guarda el alias sin confundir su texto con separadores
+    salida << (registro.esBot ? 1 : 0) << ','; //representa al bot con uno y al jugador humano con cero
+    salida << registro.posicion << ','; //guarda el puesto final del participante
+    salida << registro.puntaje << ','; //conserva los puntos acumulados al terminar
+    salida << registro.oleada << ','; //indica la ultima oleada que llego a iniciar
+    salida << registro.disparos << ','; //registra cuantas balas disparo
+    salida << registro.correctos << ','; //cuenta los impactos del mismo color que el enemigo
+    salida << registro.erroneos << ','; //cuenta los impactos de otro color
+    salida << registro.comboMax << ','; //conserva el combo mas alto de la partida
+    salida << registro.pulsos << ','; //registra las activaciones de pulso
+    salida << registro.danoTotal << ','; //guarda la vida perdida por el nucleo
+    salida << registro.ticks << ','; //acumula la duracion jugada entre todos los turnos
+    salida << registro.bajasDron << ','; //registra los drones eliminados
+    salida << registro.bajasGirador << ','; //registra los giradores eliminados
+    salida << registro.bajasDivisor << ','; //registra los divisores eliminados
+    salida << registro.bajasMini << ','; //registra los minis eliminados
+    salida << registro.bajasTanque << ','; //registra los tanques eliminados
+    salida << registro.bajasCamaleon << '\n'; //termina la fila con las bajas de camaleones
 
     return salida.good(); //comprueba que la escritura no produjo un error
 }
 
-//agrega una fila individual al archivo principal
+//escribe una fila con las metricas del archivo auxiliar
+static bool escribirRegistroDetalleCSV(ostream& salida, const RegistroPartida& registro) {
+    if (!textoValidoParaCSV(registro.jugador)) { //comprueba que el alias no contenga saltos de linea
+        return false; //rechaza los datos que alteran el formato
+    }
+
+    salida << registro.idPartida << ',' << escaparCampoCSV(registro.jugador) << ',' << registro.posicion << ','; //escribe los datos que relacionan el detalle con el principal
+    salida << registro.correctosC << ',' << registro.erroneosC << ',' << registro.correctosM << ',' << registro.erroneosM << ','; //escribe los impactos de cian y magenta
+    salida << registro.correctosA << ',' << registro.erroneosA << ',' << registro.danoDron << ',' << registro.danoGirador << ','; //escribe los impactos de ambar y los primeros tipos de dano
+    salida << registro.danoDivisor << ',' << registro.danoMini << ',' << registro.danoTanque << ',' << registro.danoCamaleon << '\n'; //termina la fila con los otros tipos de dano
+
+    return salida.good(); //comprueba que la escritura termino sin error
+}
+
+//agrega una fila al archivo principal y confirma el resultado despues de cerrar la escritura
 bool agregarRegistroCSV(const string& ruta, const RegistroPartida& registro) {
     bool escribirEncabezado = archivoVacioONoExiste(ruta); //comprueba si hace falta crear el encabezado
 
@@ -115,10 +125,16 @@ bool agregarRegistroCSV(const string& ruta, const RegistroPartida& registro) {
         salida << ENCABEZADO_HISTORIAL << '\n'; //escribe el encabezado obligatorio
     }
 
-    return escribirRegistroCSV(salida, registro); //agrega el registro y devuelve el resultado
+    if (!escribirRegistroCSV(salida, registro)) { //intenta agregar la fila con el formato principal
+        return false; //avisa si el texto no es valido o falla la escritura
+    }
+
+    salida.close(); //escribe los datos pendientes y cierra el archivo
+    return salida.good(); //comprueba tambien los errores que aparezcan al cerrar
 }
 
-//agrega una lista de registros al historial principal
+//agrega los registros al archivo principal en el orden de la lista sin crear respaldos
+//si una fila falla las anteriores pueden haber quedado guardadas
 bool agregarHistorialCSV(const string& ruta, const HistorialPartidas& historial) {
     bool escribirEncabezado = archivoVacioONoExiste(ruta); //comprueba si necesita encabezado
 
@@ -142,10 +158,12 @@ bool agregarHistorialCSV(const string& ruta, const HistorialPartidas& historial)
         actual = actual->sig; //avanza al siguiente registro
     }
 
-    return salida.good(); //comprueba el estado de la escritura
+    salida.close(); //termina la escritura antes de confirmar el resultado
+    return salida.good(); //comprueba si fallo la escritura o el cierre
 }
 
-//agrega el detalle de las partidas sin modificar el archivo principal
+//agrega las filas con detalle usando el mismo escritor del guardado conjunto y comprueba el cierre
+//si no hay detalle termina sin crear un archivo auxiliar
 bool agregarDetalleHistorialCSV(const string& rutaHistorial, const HistorialPartidas& historial) {
     bool hayDetalle = false; //indica si existe algun registro con informacion adicional
 
@@ -182,36 +200,20 @@ bool agregarDetalleHistorialCSV(const string& rutaHistorial, const HistorialPart
     while (actual != nullptr) { //recorre la lista completa
         const RegistroPartida& registro = actual->dato; //consulta el registro actual
 
-        if (registro.detalleDisponible) { //escribe solamente los registros que tienen detalle
-            if (!textoValidoParaCSV(registro.jugador)) { //comprueba que el alias sea valido
-                return false; //detiene la escritura si el alias rompe el formato
-            }
-
-            salida << registro.idPartida << ',' //escribe el identificador
-                << escaparCampoCSV(registro.jugador) << ',' //escribe el alias
-                << registro.posicion << ',' //escribe la posicion
-                << registro.correctosC << ',' //escribe los aciertos en cian
-                << registro.erroneosC << ',' //escribe los errores en cian
-                << registro.correctosM << ',' //escribe los aciertos en magenta
-                << registro.erroneosM << ',' //escribe los errores en magenta
-                << registro.correctosA << ',' //escribe los aciertos en ambar
-                << registro.erroneosA << ',' //escribe los errores en ambar
-                << registro.danoDron << ',' //escribe el dano de drones
-                << registro.danoGirador << ',' //escribe el dano de giradores
-                << registro.danoDivisor << ',' //escribe el dano de divisores
-                << registro.danoMini << ',' //escribe el dano de minis
-                << registro.danoTanque << ',' //escribe el dano de tanques
-                << registro.danoCamaleon << '\n'; //termina la fila con el dano de camaleones
+        if (registro.detalleDisponible && !escribirRegistroDetalleCSV(salida, registro)) { //escribe el detalle disponible con el mismo formato del guardado conjunto
+            return false; //detiene el agregado si el alias es invalido o falla la escritura
         }
 
         actual = actual->sig; //avanza al siguiente registro
     }
 
-    return salida.good(); //comprueba que los datos se escribieron correctamente
+    salida.close(); //envia los datos pendientes del detalle y cierra el archivo
+    return salida.good(); //confirma que tambien pudo completar el cierre
 }
 
-//separa los campos del csv respetando las comillas
-static bool separarCamposCSV(const string& linea, string campos[21]) {
+//separa una fila respetando comas y comillas y exige la cantidad de columnas indicada
+//el arreglo recibido debe tener espacio para esa cantidad de campos
+static bool separarCamposCSV(const string& linea, string campos[], int cantidadEsperada) {
     int cantidad = 0; //cuenta las columnas encontradas
     string campo; //acumula el contenido de la columna actual
     bool enComillas = false; //indica si se esta leyendo un campo entre comillas
@@ -226,12 +228,12 @@ static bool separarCamposCSV(const string& linea, string campos[21]) {
                     campo += '"'; //guarda una sola comilla
                     i++; //salta la segunda comilla
                 }
-                else {
+                else { //una comilla sin pareja cierra el campo actual
                     enComillas = false; //marca el final del texto entre comillas
                     comillasCerradas = true; //indica que espera una coma o el final de la linea
                 }
             }
-            else {
+            else { //dentro de las comillas una coma forma parte del texto
                 campo += caracter; //agrega el caracter al campo
             }
 
@@ -243,7 +245,7 @@ static bool separarCamposCSV(const string& linea, string campos[21]) {
                 return false; //rechaza la fila si tiene otro caracter
             }
 
-            if (cantidad >= 21) { //evita guardar mas columnas de las permitidas
+            if (cantidad >= cantidadEsperada) { //evita guardar mas columnas de las permitidas
                 return false; //informa que hay demasiados campos
             }
 
@@ -255,7 +257,7 @@ static bool separarCamposCSV(const string& linea, string campos[21]) {
         }
 
         if (caracter == ',') { //comprueba si encontro un separador
-            if (cantidad >= 21) { //evita salir del arreglo de columnas
+            if (cantidad >= cantidadEsperada) { //evita salir del arreglo de columnas
                 return false; //rechaza las filas con demasiadas columnas
             }
 
@@ -270,7 +272,7 @@ static bool separarCamposCSV(const string& linea, string campos[21]) {
 
             enComillas = true; //activa la lectura entre comillas
         }
-        else {
+        else { //conserva los caracteres que no son separadores ni comillas
             campo += caracter; //agrega el caracter a la columna actual
         }
     }
@@ -279,14 +281,14 @@ static bool separarCamposCSV(const string& linea, string campos[21]) {
         return false; //rechaza la fila incompleta
     }
 
-    if (cantidad >= 21) { //comprueba que quede espacio para la ultima columna
+    if (cantidad >= cantidadEsperada) { //comprueba que quede espacio para la ultima columna
         return false; //rechaza los campos adicionales
     }
 
     campos[cantidad] = campo; //guarda el ultimo campo de la linea
     cantidad++; //cuenta la ultima columna
 
-    return cantidad == 21; //acepta solamente las filas con las columnas obligatorias
+    return cantidad == cantidadEsperada; //acepta solamente las filas con las columnas obligatorias
 }
 
 //convierte un texto a entero comprobando su rango
@@ -406,14 +408,15 @@ static bool convertirRegistroCSV(const string campos[21], RegistroPartida& regis
 static bool convertirLineaCSV(const string& linea, RegistroPartida& registro) {
     string campos[21]; //guarda temporalmente las columnas de la fila
 
-    if (!separarCamposCSV(linea, campos)) { //comprueba que tenga las columnas correctas
+    if (!separarCamposCSV(linea, campos, 21)) { //comprueba que tenga las columnas correctas
         return false; //rechaza la fila mal formada
     }
 
     return convertirRegistroCSV(campos, registro); //convierte los campos a sus tipos correspondientes
 }
 
-//carga el historial principal e informa las filas invalidas
+//carga las filas validas en una lista temporal y luego reemplaza un historial ya inicializado
+//si falla la apertura o el encabezado conserva la lista anterior y si una fila es invalida la omite
 bool cargarHistorialCSV(const string& ruta, HistorialPartidas& historial, ostream& errores) {
     ifstream entrada(ruta); //abre el historial principal para lectura
 
@@ -473,93 +476,14 @@ bool cargarHistorialCSV(const string& ruta, HistorialPartidas& historial, ostrea
     return true; //confirma que el historial se cargo
 }
 
-//separa las columnas del archivo de detalle respetando comillas
-static bool separarCamposDetalleCSV(const string& linea, string campos[15]) {
-    int cantidad = 0; //cuenta las columnas encontradas
-    string campo; //guarda el texto del campo actual
-    bool enComillas = false; //indica si esta dentro de un texto entre comillas
-    bool comillasCerradas = false; //indica si se acaba de cerrar un campo
-
-    for (size_t i = 0; i < linea.size(); i++) { //recorre todos los caracteres de la linea
-        char caracter = linea[i]; //consulta el caracter actual
-
-        if (enComillas) { //comprueba si esta leyendo un campo entre comillas
-            if (caracter == '"') { //comprueba si encontro una comilla
-                if (i + 1 < linea.size() && linea[i + 1] == '"') { //detecta dos comillas seguidas
-                    campo += '"'; //agrega una sola comilla al campo
-                    i++; //salta la segunda comilla
-                }
-                else {
-                    enComillas = false; //indica que termino el texto entre comillas
-                    comillasCerradas = true; //espera la coma o el final de la linea
-                }
-            }
-            else {
-                campo += caracter; //agrega el caracter normalmente
-            }
-
-            continue; //continua con el siguiente caracter
-        }
-
-        if (comillasCerradas) { //comprueba si ya cerro un campo entre comillas
-            if (caracter != ',') { //solamente puede venir una coma despues de cerrar comillas
-                return false; //rechaza los caracteres adicionales
-            }
-
-            if (cantidad >= 15) { //comprueba el limite de columnas
-                return false; //rechaza una fila con demasiadas columnas
-            }
-
-            campos[cantidad] = campo; //guarda la columna completada
-            cantidad++; //suma una columna
-            campo.clear(); //limpia el texto para el siguiente campo
-            comillasCerradas = false; //vuelve a la lectura normal
-            continue; //pasa al siguiente caracter
-        }
-
-        if (caracter == ',') { //comprueba si encontro el separador de columnas
-            if (cantidad >= 15) { //evita acceder fuera del arreglo
-                return false; //rechaza la fila con columnas adicionales
-            }
-
-            campos[cantidad] = campo; //guarda el campo actual
-            cantidad++; //aumenta la cantidad de columnas
-            campo.clear(); //prepara el siguiente campo
-        }
-        else if (caracter == '"') { //comprueba si comienzan las comillas de un campo
-            if (!campo.empty()) { //las comillas deben comenzar al inicio del campo
-                return false; //rechaza las comillas fuera de posicion
-            }
-
-            enComillas = true; //activa la lectura entre comillas
-        }
-        else {
-            campo += caracter; //agrega el caracter al campo actual
-        }
-    }
-
-    if (enComillas) { //comprueba si quedaron comillas sin cerrar
-        return false; //rechaza una fila incompleta
-    }
-
-    if (cantidad >= 15) { //comprueba que haya espacio para el ultimo campo
-        return false; //rechaza las columnas adicionales
-    }
-
-    campos[cantidad] = campo; //guarda el ultimo campo
-    cantidad++; //cuenta la ultima columna
-
-    return cantidad == 15; //acepta solamente las filas con quince columnas
-}
-
-//busca el registro que corresponde a una fila del archivo auxiliar
+//busca el primer registro sin detalle que coincida en partida alias y posicion
 static NodoRegistroPartida* buscarRegistroParaDetalle(HistorialPartidas& historial, int idPartida, const string& jugador, int posicion) {
     NodoRegistroPartida* actual = historial.cabeza; //comienza a buscar desde el primer registro
 
     while (actual != nullptr) { //recorre el historial hasta encontrar una coincidencia
         RegistroPartida& registro = actual->dato; //consulta el registro actual
 
-        if (registro.idPartida == idPartida && registro.jugador == jugador && registro.posicion == posicion && !registro.detalleDisponible) { //comprueba la partida, el jugador y la posicion
+        if (registro.idPartida == idPartida && registro.jugador == jugador && registro.posicion == posicion && !registro.detalleDisponible) { //exige que coincidan los tres datos y que el detalle siga pendiente
             return actual; //devuelve el nodo que necesita recibir el detalle
         }
 
@@ -569,7 +493,8 @@ static NodoRegistroPartida* buscarRegistroParaDetalle(HistorialPartidas& histori
     return nullptr; //informa que no encontro un registro correspondiente
 }
 
-//carga el archivo auxiliar y completa los datos del historial principal
+//valida cada fila auxiliar antes de completar el primer registro coincidente que aun no tiene detalle
+//omite filas incorrectas o sin coincidencia y permite que el archivo auxiliar no se pueda abrir
 bool cargarDetalleHistorialCSV(const string& rutaHistorial, HistorialPartidas& historial, ostream& errores) {
     string rutaDetalle = rutaDetalleHistorialCSV(rutaHistorial); //obtiene el nombre del archivo auxiliar
 
@@ -606,7 +531,7 @@ bool cargarDetalleHistorialCSV(const string& rutaHistorial, HistorialPartidas& h
 
         string campos[15]; //guarda las columnas de detalle
 
-        if (!separarCamposDetalleCSV(linea, campos)) { //comprueba el formato de la fila
+        if (!separarCamposCSV(linea, campos, 15)) { //comprueba el formato de la fila
             errores << "Linea " << numeroLinea << " invalida en historial_detalle.csv; se omite." << '\n'; //informa donde esta el error
             continue; //omite la fila y continua
         }
@@ -626,21 +551,13 @@ bool cargarDetalleHistorialCSV(const string& rutaHistorial, HistorialPartidas& h
         int danoTanque; //recibe el dano de tanques
         int danoCamaleon; //recibe el dano de camaleones
 
-        bool valido = //comprueba que todos los campos numericos se puedan convertir
-            convertirEntero(campos[0], idPartida) &&
-            convertirEntero(campos[2], posicion) &&
-            convertirEntero(campos[3], correctosC) &&
-            convertirEntero(campos[4], erroneosC) &&
-            convertirEntero(campos[5], correctosM) &&
-            convertirEntero(campos[6], erroneosM) &&
-            convertirEntero(campos[7], correctosA) &&
-            convertirEntero(campos[8], erroneosA) &&
-            convertirEntero(campos[9], danoDron) &&
-            convertirEntero(campos[10], danoGirador) &&
-            convertirEntero(campos[11], danoDivisor) &&
-            convertirEntero(campos[12], danoMini) &&
-            convertirEntero(campos[13], danoTanque) &&
-            convertirEntero(campos[14], danoCamaleon);
+        bool valido = convertirEntero(campos[0], idPartida) && convertirEntero(campos[2], posicion); //lee los numeros que identifican el registro principal
+        valido = valido && convertirEntero(campos[3], correctosC) && convertirEntero(campos[4], erroneosC); //valida los impactos de cian si los campos anteriores eran correctos
+        valido = valido && convertirEntero(campos[5], correctosM) && convertirEntero(campos[6], erroneosM); //continua con los impactos de magenta
+        valido = valido && convertirEntero(campos[7], correctosA) && convertirEntero(campos[8], erroneosA); //continua con los impactos de ambar
+        valido = valido && convertirEntero(campos[9], danoDron) && convertirEntero(campos[10], danoGirador); //valida el dano causado por drones y giradores
+        valido = valido && convertirEntero(campos[11], danoDivisor) && convertirEntero(campos[12], danoMini); //valida el dano causado por divisores y minis
+        valido = valido && convertirEntero(campos[13], danoTanque) && convertirEntero(campos[14], danoCamaleon); //termina con el dano de tanques y camaleones
 
         if (!valido) { //comprueba si alguna conversion fallo
             errores << "Linea " << numeroLinea << " invalida en historial_detalle.csv; se omite." << '\n'; //informa el numero de linea
@@ -676,27 +593,14 @@ bool cargarDetalleHistorialCSV(const string& rutaHistorial, HistorialPartidas& h
     return true; //confirma que termino de procesar el archivo auxiliar
 }
 
-//comprueba si existe un archivo temporal o de respaldo
+//indica si un archivo puede abrirse para consultar los originales temporales y respaldos
 static bool existeArchivoGuardado(const string& ruta) {
     ifstream archivo(ruta, ios::binary); //intenta abrir el archivo indicado
     return archivo.is_open(); //indica si pudo encontrarlo y abrirlo
 }
 
-//escribe una fila con las metricas del archivo auxiliar
-static bool escribirRegistroDetalleCSV(ostream& salida, const RegistroPartida& registro) {
-    if (!textoValidoParaCSV(registro.jugador)) { //comprueba que el alias no contenga saltos de linea
-        return false; //rechaza los datos que alteran el formato
-    }
-
-    salida << registro.idPartida << ',' << escaparCampoCSV(registro.jugador) << ',' << registro.posicion << ','; //escribe los datos que relacionan el detalle con el principal
-    salida << registro.correctosC << ',' << registro.erroneosC << ',' << registro.correctosM << ',' << registro.erroneosM << ','; //escribe los impactos de cian y magenta
-    salida << registro.correctosA << ',' << registro.erroneosA << ',' << registro.danoDron << ',' << registro.danoGirador << ','; //escribe los impactos de ambar y los primeros tipos de dano
-    salida << registro.danoDivisor << ',' << registro.danoMini << ',' << registro.danoTanque << ',' << registro.danoCamaleon << '\n'; //termina la fila con los otros tipos de dano
-
-    return salida.good(); //comprueba que la escritura termino sin error
-}
-
-//prepara un archivo temporal con los datos antiguos y la partida nueva
+//copia los bytes anteriores y agrega la partida nueva a un temporal sin modificar el archivo original
+//comprueba el encabezado separa la ultima fila si le falta un salto de linea y verifica la escritura y el cierre
 static bool prepararArchivoTemporal(const string& rutaOriginal, const string& rutaTemporal, const char* encabezado, const HistorialPartidas& nuevosResultados, bool detalle) {
     ifstream anterior(rutaOriginal, ios::binary); //intenta leer el archivo anterior
     ofstream nuevo(rutaTemporal, ios::binary | ios::trunc); //crea el archivo temporal donde se preparara el resultado
@@ -771,7 +675,7 @@ static bool prepararArchivoTemporal(const string& rutaOriginal, const string& ru
     return correcto && !nuevo.fail(); //confirma que tambien pudo cerrarse sin error
 }
 
-//recupera un respaldo cuando falla el reemplazo de archivos
+//retira el archivo nuevo y devuelve el respaldo a su ruta si habia un archivo anterior
 static bool restaurarArchivoGuardado(const string& ruta, const string& respaldo, bool existiaAntes) {
     if (existeArchivoGuardado(ruta) && remove(ruta.c_str()) != 0) { //quita el archivo nuevo antes de restaurar el anterior
         return false; //informa si no pudo eliminarlo
@@ -801,7 +705,8 @@ static bool identificadorGuardadoCSV(const string& ruta, int idPartida) {
     return false; //indica que no encontro el identificador
 }
 
-//guarda el historial principal y su detalle conservando respaldos durante el reemplazo
+//valida una partida nueva con detalle y prepara ambos archivos antes de reemplazar los anteriores
+//conserva respaldos durante el reemplazo e informa si falla el guardado o la recuperacion
 bool guardarPartidaCompletaCSV(const string& rutaHistorial, const HistorialPartidas& nuevosResultados, ostream& errores) {
     if (nuevosResultados.cabeza == nullptr) { //comprueba si la partida no tiene registros
         errores << "No hay resultados nuevos para guardar." << '\n'; //informa que no hay datos para escribir
@@ -812,7 +717,7 @@ bool guardarPartidaCompletaCSV(const string& rutaHistorial, const HistorialParti
     int idPartida = actual->dato.idPartida; //obtiene el identificador comun de la partida
 
     while (actual != nullptr) { //valida todos los registros antes de escribir
-        if (!actual->dato.detalleDisponible || actual->dato.idPartida != idPartida || !textoValidoParaCSV(actual->dato.jugador) || !textoValidoParaCSV(actual->dato.modo)) { //comprueba detalle, identificador y campos de texto
+        if (!actual->dato.detalleDisponible || actual->dato.idPartida != idPartida || !textoValidoParaCSV(actual->dato.jugador) || !textoValidoParaCSV(actual->dato.modo)) { //exige detalle un mismo identificador y textos sin saltos de linea
             errores << "Los resultados nuevos contienen un registro invalido." << '\n'; //informa que los datos no corresponden
             return false; //evita modificar los archivos con registros incorrectos
         }
@@ -836,15 +741,13 @@ bool guardarPartidaCompletaCSV(const string& rutaHistorial, const HistorialParti
         return false; //no sobrescribe archivos que podrian servir para recuperar datos
     }
 
-    //prepara el historial principal sin modificar el original
-    if (!prepararArchivoTemporal(rutaHistorial, temporalPrincipal, ENCABEZADO_HISTORIAL, nuevosResultados, false)) { //copia lo anterior y agrega los nuevos registros
+    if (!prepararArchivoTemporal(rutaHistorial, temporalPrincipal, ENCABEZADO_HISTORIAL, nuevosResultados, false)) { //prepara el historial con la partida nueva sin modificar el archivo original
         errores << "No se pudo preparar el historial principal." << '\n'; //informa el error de preparacion
         remove(temporalPrincipal.c_str()); //quita el temporal incompleto
         return false; //no modifica el historial anterior
     }
 
-    //prepara tambien el detalle antes de comenzar cualquier reemplazo
-    if (!prepararArchivoTemporal(rutaDetalle, temporalDetalle, ENCABEZADO_DETALLE_HISTORIAL, nuevosResultados, true)) { //copia el detalle anterior y agrega los nuevos registros
+    if (!prepararArchivoTemporal(rutaDetalle, temporalDetalle, ENCABEZADO_DETALLE_HISTORIAL, nuevosResultados, true)) { //prepara tambien el detalle antes de comenzar los reemplazos
         errores << "No se pudo preparar el detalle historico." << '\n'; //informa que fallo el archivo auxiliar
         remove(temporalPrincipal.c_str()); //quita el temporal principal que ya no se utilizara
         remove(temporalDetalle.c_str()); //quita el temporal auxiliar incompleto
@@ -904,8 +807,7 @@ bool guardarPartidaCompletaCSV(const string& rutaHistorial, const HistorialParti
         return false; //informa que el guardado quedo incompleto
     }
 
-    //solo borra los respaldos cuando los dos archivos nuevos ya estan colocados
-    if (principalExistia && remove(respaldoPrincipal.c_str()) != 0) { //intenta eliminar el respaldo principal
+    if (principalExistia && remove(respaldoPrincipal.c_str()) != 0) { //borra el respaldo principal despues de colocar ambos archivos nuevos
         errores << "No se pudo borrar el respaldo del historial principal." << '\n'; //informa que quedo un archivo de respaldo
     }
 

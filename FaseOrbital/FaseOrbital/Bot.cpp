@@ -1,44 +1,44 @@
 #include "Bot.h"
 
 AccionMotor obtenerAccionBot(const Motor& motor) {
-    AccionMotor accion;
-    accion.cambiarAngulo = false;
-    accion.anguloObjetivo = motor.nave.anguloObjetivo;
-    accion.cambiarColor = false;
-    accion.colorNuevo = motor.nave.color;
-    accion.solicitarPulso = false;
+    AccionMotor accion; //reune las decisiones que el bot le entregara al motor
+    accion.cambiarAngulo = false; //empieza sin pedir un cambio de destino
+    accion.anguloObjetivo = motor.nave.anguloObjetivo; //conserva el destino anterior mientras no encuentre otro objetivo
+    accion.cambiarColor = false; //empieza sin pedir un cambio de fase
+    accion.colorNuevo = motor.nave.color; //conserva la fase actual como valor inicial
+    accion.solicitarPulso = false; //no pide el pulso hasta comprobar sus condiciones
 
-    const NodoEnemigo* objetivo = nullptr;
-    const NodoEnemigo* actual = motor.enemigos.cabeza;
-    int enemigosCerca = 0;
+    const NodoEnemigo* objetivo = nullptr; //todavia no ha elegido un enemigo al que apuntar
+    const NodoEnemigo* actual = motor.enemigos.cabeza; //empieza a revisar desde el primer enemigo de la lista
+    int enemigosCerca = 0; //cuenta los enemigos que estan a menos de ciento sesenta unidades del centro
 
-    while (actual != nullptr) {
-        if (actual->dato.r > 100.0) {
-            if (objetivo == nullptr || actual->dato.r < objetivo->dato.r) {
-                objetivo = actual;
+    while (actual != nullptr) { //recorre todos los enemigos para elegir objetivo y contar los cercanos
+        if (actual->dato.r > 100.0) { //considera como objetivo solo a los que siguen fuera de la orbita de la nave
+            if (objetivo == nullptr || actual->dato.r < objetivo->dato.r) { //elige el menor radio y conserva al primero si hay empate
+                objetivo = actual; //recuerda este enemigo sin modificarlo ni copiarlo
             }
         }
 
-        if (actual->dato.r < 160.0) {
-            enemigosCerca++;
+        if (actual->dato.r < 160.0) { //cuenta los cercanos incluso si ya pasaron hacia dentro de la orbita
+            enemigosCerca++; //suma un enemigo para decidir si conviene pedir el pulso
         }
 
-        actual = actual->sig;
+        actual = actual->sig; //continua con el siguiente enemigo
     }
 
-    if (objetivo != nullptr) {
-        accion.cambiarAngulo = true;
-        accion.anguloObjetivo = objetivo->dato.theta;
+    if (objetivo != nullptr) { //prepara los cambios cuando encontro un enemigo al que apuntar
+        accion.cambiarAngulo = true; //pide mover el destino de la nave hacia ese enemigo
+        accion.anguloObjetivo = objetivo->dato.theta; //usa el angulo actual del objetivo
 
-        if (objetivo->dato.color != motor.nave.color) {
-            accion.cambiarColor = true;
-            accion.colorNuevo = objetivo->dato.color;
+        if (objetivo->dato.color != motor.nave.color) { //comprueba si necesita otra fase para acertarle
+            accion.cambiarColor = true; //pide cambiar la fase de la nave
+            accion.colorNuevo = objetivo->dato.color; //elige el mismo color que tiene el enemigo
         }
     }
 
-    if (motor.jugador != nullptr && motor.jugador->cargaPulso == 100 && enemigosCerca >= 5) {
-        accion.solicitarPulso = true;
+    if (motor.jugador != nullptr && motor.jugador->cargaPulso == 100 && enemigosCerca >= 5) { //pide el pulso con carga completa y al menos cinco enemigos cerca
+        accion.solicitarPulso = true; //deja que el motor compruebe si puede activar la onda
     }
 
-    return accion;
+    return accion; //entrega las decisiones sin mover la nave ni gastar carga aqui
 }

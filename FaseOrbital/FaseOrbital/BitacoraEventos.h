@@ -2,24 +2,24 @@
 #ifndef BITACORA_EVENTOS_H
 #define BITACORA_EVENTOS_H
 
-#include "ModelosRegistros.h" //llama a struct "Evento"
+#include "ModelosRegistros.h"
 
-struct NodoEvento {
-    Evento dato;
-    NodoEvento* sig;
+struct NodoEvento { //guarda un evento y permite llegar al siguiente
+    Evento dato; //guarda lo que paso durante la partida
+    NodoEvento* sig; //apunta al siguiente evento o a nullptr si no hay mas
 };
 
-struct BitacoraEventos {
-    NodoEvento* cabeza;
-    NodoEvento* cola;
-    int tam;
+struct BitacoraEventos { //mantiene los eventos en el orden en que se agregaron
+    NodoEvento* cabeza; //permite llegar al primer evento de la lista
+    NodoEvento* cola; //permite agregar eventos despues del ultimo sin recorrer la lista
+    int tam; //guarda cuantos eventos hay en la bitacora
 };
 
-void inicializarBitacora(BitacoraEventos& bitacora);
-void agregarEventoFinal(BitacoraEventos& bitacora, const Evento& evento);
-void recorrerBitacora(const BitacoraEventos& bitacora, void (*procesar)(const Evento&));
-void filtrarPorJugador(const BitacoraEventos& origen, const std::string& jugador, BitacoraEventos& destino);
-void filtrarPorOleada(const BitacoraEventos& origen, int oleada, BitacoraEventos& destino);
-void destruirBitacora(BitacoraEventos& bitacora);
+void inicializarBitacora(BitacoraEventos& bitacora); //prepara una bitacora para empezar a usarla sin borrar nodos anteriores
+void agregarEventoFinal(BitacoraEventos& bitacora, const Evento& evento); //agrega una copia del evento al final de la lista
+void recorrerBitacora(const BitacoraEventos& bitacora, void (*procesar)(const Evento&)); //usa la funcion recibida para revisar cada evento
+void filtrarPorJugador(const BitacoraEventos& origen, const std::string& jugador, BitacoraEventos& destino); //deja en destino solo los eventos del jugador indicado
+void filtrarPorOleada(const BitacoraEventos& origen, int oleada, BitacoraEventos& destino); //deja en destino solo los eventos de la oleada indicada
+void destruirBitacora(BitacoraEventos& bitacora); //libera todos los nodos y deja la bitacora vacia
 
 #endif

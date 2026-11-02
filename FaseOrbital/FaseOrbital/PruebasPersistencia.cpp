@@ -7,7 +7,7 @@
 #include <cmath>
 #include <cstdio>
 
-using namespace std;
+using namespace std; //permite usar cadenas y flujos sin repetir el espacio de nombres
 
 //crea un registro de prueba con todos sus campos inicializados
 static RegistroPartida crearRegistroP13(int idPartida, uint32_t semilla, const string& modo, const string& jugador, bool esBot, int posicion, int puntaje, int oleada, int disparos, int correctos, int erroneos) {
@@ -30,10 +30,7 @@ static RegistroPartida crearRegistroP13(int idPartida, uint32_t semilla, const s
     registro.ticks = 500; //establece los ticks sobrevividos
     registro.bajasDron = 2; //establece las bajas de drones
     registro.bajasGirador = 1; //establece las bajas de giradores
-    registro.bajasDivisor = 0; //deja sin bajas de divisores
     registro.bajasMini = 1; //establece una baja de mini
-    registro.bajasTanque = 0; //deja sin bajas de tanques
-    registro.bajasCamaleon = 0; //deja sin bajas de camaleones
 
     return registro; //devuelve el registro completo
 }
@@ -128,7 +125,7 @@ static string leerContenidoPruebaP13(const string& ruta) {
     return contenido.str(); //devuelve el texto leido
 }
 
-//prueba que el historial y su detalle se guarden juntos
+//comprueba el guardado conjunto y que los archivos se conserven ante los errores probados
 static bool pruebaGuardarPartidaCompletaP13() {
     const string ruta = "historial_pareja_p13.csv"; //usa un archivo separado del historial real
     const string rutaDetalle = rutaDetalleHistorialCSV(ruta); //obtiene el nombre del detalle
@@ -190,12 +187,26 @@ static bool pruebaGuardarPartidaCompletaP13() {
     string detalleAntes = leerContenidoPruebaP13(rutaDetalle); //conserva el contenido original del archivo de detalle
 
     //una partida ya guardada no debe aparecer otra vez
+    errores.str(""); //separa los mensajes de este intento de los anteriores
+    errores.clear(); //deja el flujo listo para recibir el error esperado
+
     if (guardarPartidaCompletaCSV(ruta, nuevosResultados, errores)) { //intenta guardar la misma partida nuevamente
         resultado = false; //marca un error si se permite duplicarla
     }
 
+    if (errores.str() != "La partida ya aparece en el historial principal.\n") { //comprueba que el rechazo se deba al identificador repetido
+        resultado = false; //marca un error si fallo por otro motivo
+    }
+
     if (leerContenidoPruebaP13(ruta) != principalAntes || leerContenidoPruebaP13(rutaDetalle) != detalleAntes) { //comprueba que ambos archivos siguen iguales
         resultado = false; //marca el error si se modifico alguno
+    }
+
+    NodoRegistroPartida* actual = nuevosResultados.cabeza; //prepara una partida distinta para probar los siguientes errores
+
+    while (actual != nullptr) { //actualiza el identificador de todos los participantes
+        actual->dato.idPartida = 2; //evita que la validacion de duplicados detenga las pruebas siguientes
+        actual = actual->sig; //continua con el siguiente registro
     }
 
     //un archivo temporal pendiente debe impedir que se sobrescriban los datos
@@ -204,12 +215,23 @@ static bool pruebaGuardarPartidaCompletaP13() {
         bloqueado << "pendiente"; //escribe contenido para que el archivo exista
     }
 
+    errores.str(""); //descarta el mensaje de partida repetida
+    errores.clear(); //prepara el flujo para comprobar el rechazo del temporal
+
     if (guardarPartidaCompletaCSV(ruta, nuevosResultados, errores)) { //intenta guardar mientras existe el temporal
         resultado = false; //marca un error si no se detecta el temporal pendiente
     }
 
+    if (errores.str() != "Hay archivos temporales o respaldos pendientes. Revise el historial antes de continuar.\n") { //comprueba que se alcanzo la validacion del temporal
+        resultado = false; //marca un error si el guardado fallo por otra causa
+    }
+
     if (leerContenidoPruebaP13(ruta) != principalAntes || leerContenidoPruebaP13(rutaDetalle) != detalleAntes) { //comprueba que los archivos reales no cambiaron
         resultado = false; //marca el error si fueron modificados
+    }
+
+    if (leerContenidoPruebaP13(temporalDetalle) != "pendiente") { //comprueba que el temporal anterior siga intacto
+        resultado = false; //marca un error si el intento borro o reemplazo el archivo pendiente
     }
 
     remove(temporalDetalle.c_str()); //elimina el temporal creado para la prueba
@@ -220,12 +242,19 @@ static bool pruebaGuardarPartidaCompletaP13() {
         invalido << "encabezado_invalido" << '\n'; //escribe un encabezado que no corresponde
     }
 
+    errores.str(""); //descarta el mensaje del temporal pendiente
+    errores.clear(); //prepara el flujo para comprobar el error del detalle
+
     if (guardarPartidaCompletaCSV(ruta, nuevosResultados, errores)) { //intenta guardar con el detalle invalido
         resultado = false; //marca un error si acepta el archivo incorrecto
     }
 
-    if (leerContenidoPruebaP13(ruta) != principalAntes) { //comprueba que el historial principal no se altero
-        resultado = false; //marca el error si perdio sus datos originales
+    if (errores.str() != "No se pudo preparar el detalle historico.\n") { //comprueba que el fallo ocurrio al preparar el archivo auxiliar
+        resultado = false; //marca un error si no se alcanzo la revision del detalle
+    }
+
+    if (leerContenidoPruebaP13(ruta) != principalAntes || leerContenidoPruebaP13(rutaDetalle) != "encabezado_invalido\n") { //comprueba que se conservaron ambos archivos anteriores al intento
+        resultado = false; //marca el error si se modifico el principal o el detalle invalido
     }
 
     //restaura los archivos de prueba para comprobar su limpieza final
@@ -234,11 +263,12 @@ static bool pruebaGuardarPartidaCompletaP13() {
         restaurar << detalleAntes; //recupera su contenido original
     }
 
-    ifstream temporalRestante(temporalPrincipal); //comprueba si quedo el temporal principal
-    if (temporalRestante.is_open()) resultado = false; //marca el error si existe el temporal
+    const string rutasPendientes[] = { temporalPrincipal, temporalDetalle, respaldoPrincipal, respaldoDetalle }; //reune los archivos que no deben quedar despues del intento
 
-    ifstream respaldoRestante(respaldoPrincipal); //comprueba si quedo el respaldo principal
-    if (respaldoRestante.is_open()) resultado = false; //marca el error si existe el respaldo
+    for (const string& rutaPendiente : rutasPendientes) { //revisa los temporales y respaldos de ambos archivos
+        ifstream pendiente(rutaPendiente); //abre la ruta solo durante esta vuelta para permitir la limpieza posterior
+        if (pendiente.is_open()) resultado = false; //marca un error si quedo un archivo pendiente
+    }
 
     if (rutaDetalleHistorialCSV("datos.v1/historial") != "datos.v1/historial_detalle.csv") { //prueba una ruta con punto en el directorio
         resultado = false; //marca un error si la ruta resultante es incorrecta
@@ -256,7 +286,7 @@ static bool pruebaGuardarPartidaCompletaP13() {
     return resultado; //devuelve el resultado completo de la prueba
 }
 
-//comprueba que el guardado conserve estadisticas y ranking al volver a cargar
+//comprueba la lectura del historial las estadisticas el ranking y el guardado conjunto con su detalle
 bool pruebaP13() {
     const string ruta = "historial_p13_prueba.csv"; //usa un archivo independiente del historial real
 
@@ -310,7 +340,7 @@ bool pruebaP13() {
         if (!salida.is_open()) { //comprueba si pudo abrirse
             resultado = false; //marca un error si fallo la apertura
         }
-        else {
+        else { //agrega las filas invalidas cuando el archivo esta abierto
             salida << "esto,no,es,una,fila,valida" << '\n'; //escribe una fila con columnas incorrectas
             salida << "99,NO_NUMERO,lotes,ERROR,0,1,100,1,1,1,0,0,0,0,10,0,0,0,0,0,0" << '\n'; //escribe una fila con semilla invalida
         }
@@ -377,9 +407,9 @@ bool pruebaP13() {
 
     remove(ruta.c_str()); //elimina el archivo creado para esta prueba
 
-    if (!pruebaGuardarPartidaCompletaP13()) { //ejecuta las comprobaciones nuevas del guardado conjunto
+    if (!pruebaGuardarPartidaCompletaP13()) { //ejecuta las comprobaciones del guardado conjunto
         resultado = false; //marca el error si falla alguna de ellas
     }
 
-    return resultado; //devuelve el resultado final de P13
+    return resultado; //devuelve el resultado final de p13
 }

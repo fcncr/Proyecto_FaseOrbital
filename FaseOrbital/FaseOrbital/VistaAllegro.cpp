@@ -5,12 +5,12 @@
 #include <cmath>
 #include <iostream>
 
-using namespace std;
+using namespace std; //permite usar las funciones matematicas y cerr sin escribir el prefijo
 
-static const double PI_VISTA = 3.14159265358979323846;
-static const double ESCALA_MUNDO = 0.80;
-static const int CANTIDAD_DESTELLOS = 48;
-static const int DURACION_DESTELLO = 12;
+static const double PI_VISTA = 3.14159265358979323846; //permite convertir angulos y calcular los arcos del dibujo
+static const double ESCALA_MUNDO = 0.80; //reduce las distancias del motor para mostrarlas en la ventana
+static const int CANTIDAD_DESTELLOS = 48; //limita los efectos guardados a los espacios del arreglo de la vista
+static const int DURACION_DESTELLO = 6; //muestra cada explosion durante una fraccion de segundo
 
 //devuelve el color que corresponde a cada fase del juego
 static ALLEGRO_COLOR colorJuego(int color) {
@@ -20,7 +20,7 @@ static ALLEGRO_COLOR colorJuego(int color) {
     return al_map_rgb(200, 200, 200); //usa gris cuando el color no es valido
 }
 
-//convierte las coordenadas polares del motor a posiciones de pantalla
+//convierte un radio y un angulo en grados a coordenadas de pantalla usando el centro de la ventana y la escala visual
 static void polarAPantalla(const VistaAllegro& vista, double radio, double angulo, float& x, float& y) {
     double radianes = angulo * PI_VISTA / 180.0; //convierte el angulo a radianes
     double centroX = static_cast<double>(vista.ancho) / 2.0; //calcula el centro horizontal
@@ -29,7 +29,7 @@ static void polarAPantalla(const VistaAllegro& vista, double radio, double angul
     y = static_cast<float>(centroY + radio * ESCALA_MUNDO * sin(radianes)); //obtiene la coordenada vertical
 }
 
-//dibuja el nucleo y un arco que representa su vida actual
+//dibuja la orbita el nucleo y un arco de vida sin cambiar los valores del jugador
 static void dibujarNucleoYOrbita(const VistaAllegro& vista, const Motor& motor) {
     float centroX = static_cast<float>(vista.ancho) / 2.0f; //obtiene el centro horizontal
     float centroY = static_cast<float>(vista.alto) / 2.0f; //obtiene el centro vertical
@@ -44,7 +44,7 @@ static void dibujarNucleoYOrbita(const VistaAllegro& vista, const Motor& motor) 
 
     if (motor.jugador == nullptr) return; //evita consultar un jugador inexistente
 
-    int vida = motor.jugador->vidaNucleo; //lee la vida sin cambiar el estado del motor
+    int vida = motor.jugador->vidaNucleo; //copia la vida para limitar solo el arco que se dibuja
     if (vida < 0) vida = 0; //no permite dibujar vida negativa
     if (vida > 100) vida = 100; //respeta el maximo de vida
 
@@ -57,7 +57,7 @@ static void dibujarNucleoYOrbita(const VistaAllegro& vista, const Motor& motor) 
     if (vida > 0) al_draw_arc(centroX, centroY, radioVida, inicio, recorrido, colorVida, 5.0f); //muestra la vida disponible
 }
 
-//dibuja la nave triangular apuntando en su direccion actual
+//ubica la nave en su orbita y dibuja un triangulo apuntando hacia fuera del nucleo
 static void dibujarNave(const VistaAllegro& vista, const Motor& motor) {
     float x; //recibe la posicion horizontal
     float y; //recibe la posicion vertical
@@ -81,7 +81,7 @@ static void dibujarNave(const VistaAllegro& vista, const Motor& motor) {
     al_draw_triangle(puntaX, puntaY, izquierdaX, izquierdaY, derechaX, derechaY, al_map_rgb(255, 255, 255), 1.0f); //dibuja el contorno
 }
 
-//recorre la lista de balas y dibuja las que siguen activas
+//dibuja todas las balas que siguen en la lista trasladando sus coordenadas al centro de la ventana
 static void dibujarBalas(const VistaAllegro& vista, const Motor& motor) {
     const NodoBala* actual = motor.balas.cabeza; //obtiene el primer nodo
     float centroX = static_cast<float>(vista.ancho) / 2.0f; //calcula el centro horizontal
@@ -95,53 +95,53 @@ static void dibujarBalas(const VistaAllegro& vista, const Motor& motor) {
     }
 }
 
-//selecciona una figura distinta segun el tipo de enemigo
+//dibuja una figura segun el tipo de enemigo con su fase actual y muestra la vida de los tanques
 static void dibujarEnemigo(const VistaAllegro& vista, const Enemigo& enemigo) {
     float x; //recibe la posicion horizontal
     float y; //recibe la posicion vertical
     polarAPantalla(vista, enemigo.r, enemigo.theta, x, y); //convierte la posicion polar
 
     float radio = static_cast<float>(enemigo.radio * ESCALA_MUNDO); //convierte el tamano del enemigo
-    if (radio < 5.0f) radio = 5.0f; //mantiene visibles los enemigos pequenos
+    if (radio < 5.0f) radio = 5.0f; //amplia solo el dibujo de los enemigos pequenos sin cambiar sus colisiones
 
     ALLEGRO_COLOR color = colorJuego(enemigo.color); //obtiene el color de fase
     ALLEGRO_COLOR borde = al_map_rgb(255, 255, 255); //usa el mismo color para los bordes
 
     switch (enemigo.tipo) { //dibuja la figura que corresponde al tipo
-    case Dron:
+    case Dron: //representa al dron con un circulo
         al_draw_filled_circle(x, y, radio, color); //dibuja un circulo relleno
         al_draw_circle(x, y, radio, borde, 1.0f); //marca el borde del dron
-        break;
+        break; //termina el dibujo de este tipo
 
-    case Girador:
+    case Girador: //representa al girador con un triangulo
         al_draw_filled_triangle(x, y - radio - 2.0f, x - radio, y + radio, x + radio, y + radio, color); //dibuja un triangulo
         al_draw_triangle(x, y - radio - 2.0f, x - radio, y + radio, x + radio, y + radio, borde, 1.0f); //marca el borde
-        break;
+        break; //termina el dibujo de este tipo
 
-    case Divisor:
+    case Divisor: //representa al divisor con un cuadrado dividido
         al_draw_filled_rectangle(x - radio, y - radio, x + radio, y + radio, color); //dibuja un cuadrado
         al_draw_line(x - radio, y, x + radio, y, borde, 1.0f); //marca la mitad horizontal
         al_draw_line(x, y - radio, x, y + radio, borde, 1.0f); //marca la mitad vertical
-        break;
+        break; //termina el dibujo de este tipo
 
-    case Mini:
+    case Mini: //distingue al mini con un circulo y un aro exterior
         al_draw_filled_circle(x, y, radio, color); //dibuja un circulo pequeno
         al_draw_circle(x, y, radio + 2.0f, borde, 1.0f); //marca un aro adicional
-        break;
+        break; //termina el dibujo de este tipo
 
-    case Tanque:
+    case Tanque: //representa al tanque con un cuadrado de borde grueso
         al_draw_filled_rectangle(x - radio - 2.0f, y - radio - 2.0f, x + radio + 2.0f, y + radio + 2.0f, color); //dibuja un cuadrado grande
         al_draw_rectangle(x - radio - 2.0f, y - radio - 2.0f, x + radio + 2.0f, y + radio + 2.0f, borde, 2.0f); //marca un borde grueso
-        break;
+        break; //deja pendiente solo el texto de vida que se dibuja despues del switch
 
-    case Camaleon:
+    case Camaleon: //forma un rombo para distinguir al camaleon
         al_draw_filled_triangle(x, y - radio - 2.0f, x - radio - 2.0f, y, x, y + radio + 2.0f, color); //dibuja la mitad izquierda
         al_draw_filled_triangle(x, y - radio - 2.0f, x + radio + 2.0f, y, x, y + radio + 2.0f, color); //dibuja la mitad derecha
         al_draw_line(x, y - radio - 2.0f, x + radio + 2.0f, y, borde, 1.0f); //marca el borde superior derecho
         al_draw_line(x + radio + 2.0f, y, x, y + radio + 2.0f, borde, 1.0f); //marca el borde inferior derecho
         al_draw_line(x, y + radio + 2.0f, x - radio - 2.0f, y, borde, 1.0f); //marca el borde inferior izquierdo
         al_draw_line(x - radio - 2.0f, y, x, y - radio - 2.0f, borde, 1.0f); //marca el borde superior izquierdo
-        break;
+        break; //termina el dibujo de este tipo
     }
 
     if (enemigo.tipo == Tanque) { //comprueba si debe mostrar la vida del tanque
@@ -169,7 +169,7 @@ static void dibujarPulso(const VistaAllegro& vista, const Motor& motor) {
     al_draw_circle(centroX, centroY, radio, al_map_rgb(255, 255, 255), 3.0f); //dibuja el anillo del pulso
 }
 
-//deja listos los espacios usados por los efectos de baja
+//desactiva los efectos guardados y vuelve al primer espacio del arreglo para registrar nuevas bajas
 static void reiniciarDestellos(VistaAllegro& vista) {
     vista.siguienteDestello = 0; //reinicia la posicion del siguiente efecto
 
@@ -177,29 +177,36 @@ static void reiniciarDestellos(VistaAllegro& vista) {
         vista.destellos[i].activo = false; //desactiva el destello anterior
         vista.destellos[i].tickInicio = 0; //reinicia su tick de inicio
         vista.destellos[i].color = 0; //reinicia su color
+        vista.destellos[i].r = 0.0; //borra la distancia guardada para el efecto anterior
+        vista.destellos[i].theta = 0.0; //borra el angulo guardado para el efecto anterior
     }
 }
 
-//registra un destello visual por una baja nueva
+//guarda el color la posicion y el tick de una baja en el siguiente espacio reutilizable del arreglo
 static void agregarDestello(VistaAllegro& vista, const Evento& evento, int tickActual) {
+    if (evento.r < 0.0) return; //ignora eventos antiguos o de prueba que no tengan una posicion valida
+
     int posicion = vista.siguienteDestello; //selecciona un espacio del arreglo
     vista.destellos[posicion].activo = true; //activa el efecto
-    vista.destellos[posicion].tickInicio = tickActual; //guarda el tick de inicio
+    vista.destellos[posicion].tickInicio = tickActual; //inicia la duracion visual desde el tick en que se procesa la baja
     vista.destellos[posicion].color = evento.color; //guarda el color de la baja
+    vista.destellos[posicion].r = evento.r; //conserva la distancia donde murio el enemigo
+    vista.destellos[posicion].theta = evento.theta; //conserva el angulo donde murio el enemigo
     vista.siguienteDestello = (posicion + 1) % CANTIDAD_DESTELLOS; //vuelve al inicio al llenar el arreglo
 }
 
-//reproduce un sonido corto sin detener el ciclo del juego
+//solicita una reproduccion del sonido al volumen indicado sin esperar a que termine
 static void reproducirSonido(ALLEGRO_SAMPLE* sonido, float volumen) {
     if (sonido == nullptr) return; //evita reproducir un recurso inexistente
     al_play_sample(sonido, volumen, 0.0f, 1.0f, ALLEGRO_PLAYMODE_ONCE, nullptr); //inicia el sonido sin detener la simulacion
 }
 
-//lee eventos nuevos y activa los sonidos y destellos correspondientes
+//revisa los eventos aun no procesados y aplica los efectos del jugador y la oleada actuales
+//al detectar un reinicio descarta los eventos ya presentes y en cada grupo reproduce como maximo un sonido de cada tipo
 static void actualizarEfectos(VistaAllegro& vista, const Motor& motor) {
     if (motor.jugador == nullptr || motor.bitacora == nullptr) return; //necesita un jugador y una bitacora
 
-    bool nuevoTurno = motor.tickActual == 0 || vista.bitacoraObservada != motor.bitacora || vista.jugadorObservado != motor.jugador || vista.oleadaObservada != motor.numeroOleada || motor.tickActual < vista.tickObservado || vista.eventosProcesados > motor.bitacora->tam; //detecta si cambio el turno
+    bool nuevoTurno = motor.tickActual == 0 || vista.bitacoraObservada != motor.bitacora || vista.jugadorObservado != motor.jugador || vista.oleadaObservada != motor.numeroOleada || motor.tickActual < vista.tickObservado || vista.eventosProcesados > motor.bitacora->tam; //detecta cambios de turno o retrocesos del tick o de la bitacora
 
     if (nuevoTurno) { //reinicia efectos cuando empieza otro turno
         reiniciarDestellos(vista); //quita los destellos antiguos
@@ -207,8 +214,8 @@ static void actualizarEfectos(VistaAllegro& vista, const Motor& motor) {
         vista.jugadorObservado = motor.jugador; //guarda el jugador actual
         vista.oleadaObservada = motor.numeroOleada; //guarda la oleada actual
         vista.tickObservado = motor.tickActual; //guarda el tick inicial
-        vista.eventosProcesados = motor.bitacora->tam; //ignora los eventos de turnos anteriores
-        return; //no reproduce sonidos antiguos al comenzar
+        vista.eventosProcesados = motor.bitacora->tam; //deja como revisados todos los eventos que ya estaban presentes
+        return; //espera eventos nuevos antes de reproducir efectos de este turno
     }
 
     if (vista.eventosProcesados == motor.bitacora->tam) { //comprueba si no hay eventos nuevos
@@ -216,10 +223,10 @@ static void actualizarEfectos(VistaAllegro& vista, const Motor& motor) {
         return; //evita reproducir sonidos otra vez
     }
 
-    bool huboBaja = false; //evita superponer demasiados sonidos de baja en un tick
-    bool huboError = false; //evita repetir el mismo sonido de error
-    bool huboDano = false; //evita repetir el mismo sonido de dano
-    bool huboPulso = false; //evita repetir el mismo sonido de pulso
+    bool huboBaja = false; //reune las bajas nuevas para reproducir un solo sonido en este grupo
+    bool huboError = false; //recuerda si el grupo contiene algun impacto incorrecto
+    bool huboDano = false; //recuerda si el grupo contiene algun choque que causo dano
+    bool huboPulso = false; //recuerda si el grupo contiene alguna activacion de pulso
     const NodoEvento* actual = motor.bitacora->cabeza; //comienza en el primer evento de la lista
 
     for (int i = 0; i < vista.eventosProcesados && actual != nullptr; i++) { //salta los eventos que ya fueron procesados
@@ -245,7 +252,7 @@ static void actualizarEfectos(VistaAllegro& vista, const Motor& motor) {
             }
         }
 
-        vista.eventosProcesados++; //marca que ya se atendio el evento
+        vista.eventosProcesados++; //cuenta tambien los eventos descartados por ser de otro jugador u oleada
         actual = actual->sig; //avanza al siguiente nodo
     }
 
@@ -256,27 +263,41 @@ static void actualizarEfectos(VistaAllegro& vista, const Motor& motor) {
     vista.tickObservado = motor.tickActual; //recuerda el ultimo tick revisado
 }
 
-//dibuja los destellos mientras no hayan cumplido su duracion
+//dibuja una pequena explosion por cada baja reciente usando un centro un anillo y ocho rayos
+//no cambia los espacios vencidos porque se sobrescriben al registrar nuevas bajas o se limpian al reiniciar
 static void dibujarDestellos(const VistaAllegro& vista, const Motor& motor) {
     for (int i = 0; i < CANTIDAD_DESTELLOS; i++) { //recorre los efectos almacenados
         const DestelloBajaVista& destello = vista.destellos[i]; //consulta el efecto actual
         if (!destello.activo) continue; //ignora las posiciones sin efecto
 
         int edad = motor.tickActual - destello.tickInicio; //calcula los ticks desde la baja
-        if (edad < 0 || edad >= DURACION_DESTELLO) continue; //omite los efectos terminados
+        if (edad < 0 || edad >= DURACION_DESTELLO) continue; //omite los efectos que aun no empiezan o que ya cumplieron su duracion
 
-        float x = static_cast<float>(vista.ancho) - 60.0f - static_cast<float>((i % 4) * 30); //ubica el efecto en el lado derecho
-        float y = 82.0f + static_cast<float>(((i / 4) % 9) * 30); //separa las bajas simultaneas
-        float radio = 4.0f + static_cast<float>(edad) * 1.6f; //agranda el efecto durante sus ticks
+        float x; //recibe la posicion horizontal de la baja en pantalla
+        float y; //recibe la posicion vertical de la baja en pantalla
+        polarAPantalla(vista, destello.r, destello.theta, x, y); //ubica la explosion donde murio el enemigo
+
+        float radio = 2.5f + static_cast<float>(edad) * 0.8f; //expande un anillo pequeno durante la animacion
+        float inicioRayo = radio * 0.65f; //separa los rayos cortos del centro de la explosion
+        float finalRayo = radio + 2.5f; //extiende los rayos apenas por fuera del anillo
+        float inicioDiagonal = inicioRayo * 0.70f; //ajusta el inicio de los rayos diagonales
+        float finalDiagonal = finalRayo * 0.70f; //ajusta el final de los rayos diagonales
         ALLEGRO_COLOR color = colorJuego(destello.color); //utiliza el color de la baja
 
-        al_draw_circle(x, y, radio, color, 2.0f); //dibuja el anillo del destello
-        al_draw_line(x - radio, y, x + radio, y, color, 1.0f); //dibuja la linea horizontal
-        al_draw_line(x, y - radio, x, y + radio, color, 1.0f); //dibuja la linea vertical
+        al_draw_filled_circle(x, y, 1.5f, color); //marca discretamente el centro de la explosion
+        al_draw_circle(x, y, radio, color, 1.0f); //dibuja la pequena onda que se expande
+        al_draw_line(x - finalRayo, y, x - inicioRayo, y, color, 1.0f); //dibuja el rayo izquierdo
+        al_draw_line(x + inicioRayo, y, x + finalRayo, y, color, 1.0f); //dibuja el rayo derecho
+        al_draw_line(x, y - finalRayo, x, y - inicioRayo, color, 1.0f); //dibuja el rayo superior
+        al_draw_line(x, y + inicioRayo, x, y + finalRayo, color, 1.0f); //dibuja el rayo inferior
+        al_draw_line(x - finalDiagonal, y - finalDiagonal, x - inicioDiagonal, y - inicioDiagonal, color, 1.0f); //dibuja el rayo superior izquierdo
+        al_draw_line(x + inicioDiagonal, y - inicioDiagonal, x + finalDiagonal, y - finalDiagonal, color, 1.0f); //dibuja el rayo superior derecho
+        al_draw_line(x - finalDiagonal, y + finalDiagonal, x - inicioDiagonal, y + inicioDiagonal, color, 1.0f); //dibuja el rayo inferior izquierdo
+        al_draw_line(x + inicioDiagonal, y + inicioDiagonal, x + finalDiagonal, y + finalDiagonal, color, 1.0f); //dibuja el rayo inferior derecho
     }
 }
 
-//muestra puntaje, vida, combo, oleada y carga del jugador
+//muestra los datos actuales del jugador en el marcador sin cambiar las metricas del motor
 static void dibujarHud(const VistaAllegro& vista, const Motor& motor) {
     al_draw_filled_rectangle(10.0f, 10.0f, 235.0f, 185.0f, al_map_rgb(25, 30, 45)); //dibuja el fondo del marcador
     al_draw_rectangle(10.0f, 10.0f, 235.0f, 185.0f, al_map_rgb(100, 120, 160), 1.0f); //dibuja el borde del marcador
@@ -284,7 +305,7 @@ static void dibujarHud(const VistaAllegro& vista, const Motor& motor) {
 
     const Jugador& jugador = *motor.jugador; //consulta el jugador actual sin copiarlo
     int multiplicador = calcularMultiplicador(jugador.combo); //calcula el multiplicador de los puntos
-    const char* colorTexto = "C"; //usa cian como fase inicial
+    const char* colorTexto = "C"; //usa la letra de cian como texto predeterminado sin cambiar la fase de la nave
     if (motor.nave.color == 1) colorTexto = "M"; //identifica magenta
     else if (motor.nave.color == 2) colorTexto = "A"; //identifica ambar
     ALLEGRO_COLOR blanco = al_map_rgb(255, 255, 255); //usa un color comun para el texto
@@ -293,7 +314,7 @@ static void dibujarHud(const VistaAllegro& vista, const Motor& motor) {
     al_draw_textf(vista.fuente, blanco, 20.0f, 42.0f, 0, "Puntaje: %d", jugador.puntaje); //muestra el puntaje
     al_draw_textf(vista.fuente, blanco, 20.0f, 64.0f, 0, "Combo: %d   x%d", jugador.combo, multiplicador); //muestra combo y multiplicador
     al_draw_textf(vista.fuente, blanco, 20.0f, 86.0f, 0, "Oleada: %d", motor.numeroOleada); //muestra la oleada
-    al_draw_textf(vista.fuente, blanco, 20.0f, 108.0f, 0, "Vida nucleo: %d", jugador.vidaNucleo); //muestra la vida numerica
+    al_draw_textf(vista.fuente, blanco, 20.0f, 108.0f, 0, "Vida nucleo: %d", jugador.vidaNucleo); //muestra la vida guardada sin aplicar el limite visual usado por el arco
     al_draw_textf(vista.fuente, blanco, 20.0f, 130.0f, 0, "Carga pulso: %d/100", jugador.cargaPulso); //muestra la carga disponible
     al_draw_textf(vista.fuente, blanco, 20.0f, 152.0f, 0, "Color: %s   Tick: %d", colorTexto, motor.tickActual); //muestra la fase y el tick
 }
@@ -305,7 +326,9 @@ static void dibujarAyuda(const VistaAllegro& vista) {
     al_draw_text(vista.fuente, al_map_rgb(170, 180, 200), centro, static_cast<float>(vista.alto) - 25.0f, ALLEGRO_ALIGN_CENTER, "ESPACIO: PULSO | P/ESC: PAUSA | M EN PAUSA: MENU"); //muestra los controles de pulso y pausa
 }
 
-//crea la ventana y carga los recursos obligatorios de allegro
+//prepara una vista sin recursos activos y carga la ventana los controles la fuente y los cuatro sonidos
+//con addresssanitizer omite el audio para evitar el conflicto entre directsound y el sanitizador
+//el mouse es opcional y los fallos de recursos obligatorios liberan lo creado durante este intento
 bool inicializarVistaAllegro(VistaAllegro& vista, int ancho, int alto) {
     vista.display = nullptr; //inicializa el puntero de la ventana
     vista.colaEventos = nullptr; //inicializa el puntero de la cola de eventos
@@ -337,7 +360,7 @@ bool inicializarVistaAllegro(VistaAllegro& vista, int ancho, int alto) {
 
     if (!al_install_keyboard()) { //comprueba si el teclado esta disponible
         cerr << "No se pudo inicializar el teclado." << '\n'; //informa que fallo el teclado
-        destruirVistaAllegro(vista); //libera cualquier recurso anterior
+        destruirVistaAllegro(vista); //limpia el estado preparado para este intento de inicializacion
         return false; //detiene la inicializacion
     }
     vista.tecladoInstalado = true; //recuerda que luego debe liberar el teclado
@@ -347,99 +370,104 @@ bool inicializarVistaAllegro(VistaAllegro& vista, int ancho, int alto) {
 
     if (!al_init_primitives_addon()) { //inicia las funciones de dibujo
         cerr << "No se pudo inicializar primitives." << '\n'; //informa que no se pueden dibujar figuras
-        destruirVistaAllegro(vista); //libera los recursos creados
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
     vista.primitivasIniciadas = true; //recuerda que el addon quedo iniciado
 
     if (!al_init_font_addon()) { //inicia las funciones de texto
         cerr << "No se pudo inicializar font." << '\n'; //informa el error de fuentes
-        destruirVistaAllegro(vista); //libera lo que ya se creo
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
     vista.fuentesIniciadas = true; //recuerda que el addon quedo iniciado
 
     if (!al_init_ttf_addon()) { //inicia la carga de archivos ttf
         cerr << "No se pudo inicializar ttf." << '\n'; //informa el error de ttf
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
     vista.ttfIniciado = true; //recuerda que el addon quedo iniciado
 
+#ifndef __SANITIZE_ADDRESS__
     if (!al_install_audio()) { //inicia el sistema de sonido
         cerr << "No se pudo inicializar audio." << '\n'; //informa que no hay audio disponible
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
     vista.audioInstalado = true; //recuerda que se debe liberar el audio al salir
 
     if (!al_init_acodec_addon()) { //habilita la lectura de archivos wav
         cerr << "No se pudo inicializar acodec." << '\n'; //informa el error de codecs
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
-
     if (!al_reserve_samples(16)) { //prepara varios canales para sonidos simultaneos
         cerr << "No se pudieron reservar los canales de audio." << '\n'; //informa el error de reproduccion
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
+#else
+    cerr << "Audio desactivado durante la prueba con AddressSanitizer." << '\n'; //explica por que la prueba se ejecuta sin sonido
+#endif
 
     vista.display = al_create_display(ancho, alto); //crea la ventana del juego
     if (vista.display == nullptr) { //comprueba si la ventana se creo correctamente
         cerr << "No se pudo crear la ventana." << '\n'; //informa el fallo de ventana
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
 
     vista.colaEventos = al_create_event_queue(); //crea la cola de eventos
     if (vista.colaEventos == nullptr) { //comprueba si la cola se creo
         cerr << "No se pudo crear la cola de eventos." << '\n'; //informa el error
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
 
-    vista.timer = al_create_timer(1.0 / 30.0); //crea el temporizador de treinta ticks por segundo
+    vista.timer = al_create_timer(1.0 / 30.0); //crea el temporizador de treinta eventos por segundo que la aplicacion iniciara al jugar
     if (vista.timer == nullptr) { //comprueba que el temporizador exista
         cerr << "No se pudo crear el temporizador." << '\n'; //informa el error
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
 
     vista.fuente = al_load_ttf_font("recursos/fuente.ttf", 16, 0); //carga una fuente externa para todas las pantallas
     if (vista.fuente == nullptr) { //comprueba si la fuente pudo cargarse
         cerr << "No se pudo cargar: recursos/fuente.ttf" << '\n'; //indica exactamente que recurso falta
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
 
+#ifndef __SANITIZE_ADDRESS__
     vista.sonidoBaja = al_load_sample("recursos/sonido_baja.wav"); //carga el sonido de eliminacion
     if (vista.sonidoBaja == nullptr) { //comprueba si se encontro el archivo de baja
         cerr << "No se pudo cargar: recursos/sonido_baja.wav" << '\n'; //identifica el recurso faltante
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
 
     vista.sonidoError = al_load_sample("recursos/sonido_error.wav"); //carga el sonido de impacto incorrecto
     if (vista.sonidoError == nullptr) { //comprueba si se encontro el archivo de error
         cerr << "No se pudo cargar: recursos/sonido_error.wav" << '\n'; //identifica el recurso faltante
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
 
     vista.sonidoDano = al_load_sample("recursos/sonido_dano.wav"); //carga el sonido de dano al jugador
     if (vista.sonidoDano == nullptr) { //comprueba si se encontro el archivo de dano
         cerr << "No se pudo cargar: recursos/sonido_dano.wav" << '\n'; //identifica el recurso faltante
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
 
     vista.sonidoPulso = al_load_sample("recursos/sonido_pulso.wav"); //carga el sonido de activacion del pulso
     if (vista.sonidoPulso == nullptr) { //comprueba si se encontro el archivo del pulso
         cerr << "No se pudo cargar: recursos/sonido_pulso.wav" << '\n'; //identifica el recurso faltante
-        destruirVistaAllegro(vista); //libera los recursos anteriores
+        destruirVistaAllegro(vista); //libera lo creado durante este intento de inicializacion
         return false; //detiene la inicializacion
     }
+#endif
 
     al_register_event_source(vista.colaEventos, al_get_display_event_source(vista.display)); //registra los eventos de ventana
     al_register_event_source(vista.colaEventos, al_get_timer_event_source(vista.timer)); //registra los eventos del temporizador
@@ -449,7 +477,8 @@ bool inicializarVistaAllegro(VistaAllegro& vista, int ancho, int alto) {
     return true; //confirma que allegro y sus recursos estan listos
 }
 
-//libera cada recurso y deja sus punteros sin referencias antiguas
+//detiene los sonidos y libera los recursos que llegaron a crearse durante la inicializacion
+//deja sus punteros en nulo y borra el seguimiento del turno sin liberar el jugador ni la bitacora prestados
 void destruirVistaAllegro(VistaAllegro& vista) {
     if (vista.audioInstalado) al_stop_samples(); //detiene sonidos que aun se esten reproduciendo
 
@@ -522,7 +551,8 @@ void destruirVistaAllegro(VistaAllegro& vista) {
     reiniciarDestellos(vista); //desactiva cualquier destello restante
 }
 
-//dibuja el turno actual y reproduce solo los eventos que llegaron desde el ultimo dibujo
+//actualiza los efectos y dibuja el turno en el orden previsto sin modificar el motor ni avanzar sus ticks
+//el parametro de pausa solo controla el aviso visual y la aplicacion decide si la simulacion avanza
 void dibujarMotor(VistaAllegro& vista, const Motor& motor, bool pausado) {
     actualizarEfectos(vista, motor); //prepara los destellos y sonidos de eventos nuevos
     al_clear_to_color(al_map_rgb(10, 12, 22)); //limpia el fotograma anterior
