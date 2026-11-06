@@ -529,7 +529,7 @@ void mostrarResumenOleada(VistaAllegro& vista, EstadoInterfaz& estado, const Par
         al_draw_textf(vista.fuente, color, 500.0f, y, 0, "Vida: %d", jugador.vidaNucleo); //muestra la vida restante del nucleo
 
         if (jugador.eliminado) { //comprueba si el participante ya quedo fuera de la partida
-            al_draw_text(vista.fuente, al_map_rgb(255, 80, 80), 650.0f, y, 0, "ELIMINADO"); //agrega el aviso al final de su fila
+            al_draw_text(vista.fuente, al_map_rgb(255, 80, 80), 600.0f, y, 0, "ELIMINADO"); //agrega el aviso al final de su fila
         }
 
         y += 45.0f; //deja espacio para el siguiente participante
